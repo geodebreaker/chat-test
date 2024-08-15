@@ -1,0 +1,24 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "idk",
+  "main": "node.js",
+  "scripts": {
+    "start": "node node.js",
+    "test": "node node.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geodebreaker/chat-test.git"
+  },
+  "keywords": [
+    "chat",
+    "rtc"
+  ],
+  "author": "geodebreaker",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/geodebreaker/chat-test/issues"
+  },
+  "homepage": "https://github.com/geodebreaker/chat-test#readme"
+}
