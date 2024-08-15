@@ -11,6 +11,7 @@ body {
   gap: 10px;
   font-family: monospace;
   font-size: 20px;
+  color: white;
 }
 
 input, button {
@@ -21,7 +22,6 @@ input, button {
 input {
   cursor: text;
   height: 50px;
-  color: white;
 }
 
 button {
@@ -30,7 +30,7 @@ button {
   height: 50px;
 }
 
-body > * {
+body > *:not(#login) {
   border: 1px solid #888;
   display: inline-block;
   box-sizing: border-box;
@@ -55,6 +55,7 @@ body > * {
 #chat {
   height: calc(100vh - 120px);
   grid-area: c;
+  white-space: pre;
 }
 
 #msg {
@@ -67,4 +68,21 @@ body > * {
   width: 60px;
   background-image: url('goober.jpg');
   background-size: 60px;
+}
+
+#login {
+  box-sizing: border-box;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  background: #0008;
+}
+
+#login div {
+  height: 300px;
+  width: 300px;
 }
