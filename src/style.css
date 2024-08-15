@@ -1,0 +1,70 @@
+body {
+  margin: 10px;
+  background: #222;
+  display: grid;
+  grid-template-areas:
+    'r u u l'
+    'c c c c'
+    'm m s s';
+  grid-template-columns: auto auto 25px 25px;
+  grid-template-rows: 25px auto 50px;
+  gap: 10px;
+  font-family: monospace;
+  font-size: 20px;
+}
+
+input, button {
+  all: unset;
+  background: #333;
+}
+
+input {
+  cursor: text;
+  height: 50px;
+  color: white;
+}
+
+button {
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+}
+
+body > * {
+  border: 1px solid #888;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+#undisplay {
+  grid-area: u;
+}
+
+#roomdisplay {
+  grid-area: r;
+}
+
+#leave {
+  grid-area: l;
+  height: 25px;
+  width: 25px;
+  background-image: url('goober.jpg');
+  background-size: 25px;
+}
+
+#chat {
+  height: calc(100vh - 120px);
+  grid-area: c;
+}
+
+#msg {
+  grid-area: m;
+  padding: 10px;
+}
+
+#send {
+  grid-area: s;
+  width: 60px;
+  background-image: url('goober.jpg');
+  background-size: 60px;
+}
