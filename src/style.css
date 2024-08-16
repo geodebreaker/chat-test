@@ -56,6 +56,8 @@ body > *:not(#login) {
   height: calc(100vh - 120px);
   grid-area: c;
   white-space: pre;
+  overflow-y: scroll;
+  overflow-wrap: normal;
 }
 
 #msg {
@@ -107,10 +109,14 @@ body > *:not(#login) {
   cursor: pointer;
 }
 
-.undisplay {
+.usertag {
   font-weight: bold;
 }
 
-#lilog {
+#lilog, .bad {
   color: red;
+}
+
+.good {
+  color: green;
 }
