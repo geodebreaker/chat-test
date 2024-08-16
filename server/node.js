@@ -15,7 +15,7 @@ const svr = http.createServer((req, res) => {
           (
             f('js') ? 'application/javascript' :
               f('css') ? 'text/css' :
-                f('jpg') ? 'image/jpg' :
+                f('jpeg') ? 'image/jpeg' :
                   f('svg') ? 'image/svg+xml' :
                     f('png') ? 'image/png' :
                       'text/html'

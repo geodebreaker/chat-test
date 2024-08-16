@@ -49,6 +49,9 @@ function send(value) {
 
 function recv(value) {
   mkmsg(value.from, value.data);
+  var x = new Audio('ping.mp3');
+  x.volume = 0.5;
+  x.play();
 }
 
 function mkmsg(from, data) {
@@ -182,3 +185,8 @@ function login() {
     }
   }
 }
+
+setTimeout(() => {
+  if (ws && ws.readyState == ws.OPEN)
+    ws.send(JSON.stringify({ ping: '' }))
+}, 10e3);
