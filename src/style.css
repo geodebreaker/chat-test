@@ -83,6 +83,30 @@ body > *:not(#login) {
 }
 
 #login div {
+  position: fixed;
+  padding: 10px;
+  inset: 0;
+  background: #222;
+  width: 400px;
   height: 300px;
-  width: 300px;
+  margin: auto;
+  color: white;
+}
+
+#login input {
+  cursor: text;
+  height: 30px;
+  padding: 2px;
+  margin: 5px 0px;
+  border: 1px solid #888;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+#login input[type="button"] {
+  cursor: pointer;
+}
+
+.undisplay {
+  font-weight: bold;
 }

@@ -3,6 +3,7 @@ $ = x => document.querySelector(x);
 $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#send').onclick = x => send($('#msg').value);
 $('#leave').onclick = x => $('#login').showPopover();
+$('#libtn').onclick = x => login();
 
 $('#login').showPopover();
 
