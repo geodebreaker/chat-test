@@ -48,8 +48,10 @@ body > *:not(#login) {
   grid-area: l;
   height: 25px;
   width: 25px;
-  background-image: url('goober.jpg');
-  background-size: 25px;
+  background-image: url('leave.svg');
+  background-size: 15px;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #chat {
@@ -68,8 +70,10 @@ body > *:not(#login) {
 #send {
   grid-area: s;
   width: 60px;
-  background-image: url('goober.jpg');
-  background-size: 60px;
+  background-image: url('send.svg');
+  background-size: 20px;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #login {

@@ -19,15 +19,23 @@ $('#username').onkeypress = x => {
 $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#room').onkeypress = x => { if (x.key == 'Enter') $('#libtn').click() };
 $('#send').onclick = x => send($('#msg').value);
-$('#leave').onclick = x => { $('#login').showPopover(); loggedin = null; ws.close() };
+$('#leave').onclick = x => { 
+  $('#login').showPopover(); 
+  loggedin = null; 
+  ws.close();
+  $('#chat').innerHTML = '';
+};
 $('#libtn').onclick = x => login();
 $('#un');
 
 $('#login').showPopover();
 
 function send(value) {
-  ws.send(JSON.stringify({ msg: value }));
-  mkmsg(un, value);
+  if (value != '') {
+    ws.send(JSON.stringify({ msg: value }));
+    mkmsg(un, value);
+    $('#msg').value = '';
+  }
 }
 
 function recv(value) {
@@ -42,6 +50,7 @@ function mkmsg(from, data) {
   var m = document.createElement('span');
   m.innerText = data;
   $('#chat').innerHTML += u.outerHTML + m.outerHTML + '<br>';
+  updateChat();
 }
 
 function mkalert(type, data, un) {
@@ -53,6 +62,11 @@ function mkalert(type, data, un) {
   u.className = 'usertag';
   u.style.color = colorhash(un);
   $('#chat').innerHTML += m.outerHTML + u.outerHTML + '<br>';
+  updateChat();
+}
+
+function updateChat(){
+  $('#chat').scrollTop = $('#chat').scrollHeight;
 }
 
 function colorhash(x) {

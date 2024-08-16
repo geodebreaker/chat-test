@@ -18,8 +18,10 @@ const svr = http.createServer((req, res) => {
           (
             f('js') ? 'application/javascript' :
               f('css') ? 'text/css' :
-                f('gif') ? 'image/gif' :
-                  'text/html'
+                f('jpg') ? 'image/jpg' :
+                  f('svg') ? 'image/svg+xml' :
+                    f('png') ? 'image/png' :
+                      'text/html'
           )
       });
       res.end(data);
@@ -57,12 +59,12 @@ wss.on('connection', (ws) => {
     var y = Object.keys(x)[0];
     x = x[y];
 
-    switch(y){
+    switch (y) {
       case 'li':
-        if(clients[x.username] || x.username.length < 2 || x.username.length > 12){
+        if (clients[x.username] || x.username.length < 2 || x.username.length > 12) {
           return send(ws, 'li', 'bad username');
         }
-        
+
         ws.un = x.username;
         ws.room = x.room;
         ws.li = true;
@@ -74,7 +76,7 @@ wss.on('connection', (ws) => {
         break;
       case 'msg':
 
-        emit('msg', {from:ws.un,data:x}, ws.room, ws.un);
+        emit('msg', { from: ws.un, data: x }, ws.room, ws.un);
 
         break;
     }
