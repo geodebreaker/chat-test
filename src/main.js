@@ -187,7 +187,7 @@ function login() {
   }
 }
 
-setTimeout(() => {
+setInterval(() => {
   if (ws && ws.readyState == ws.OPEN)
     ws.send(JSON.stringify({ ping: '' }))
 }, 10e3);
