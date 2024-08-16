@@ -40,7 +40,6 @@ function send(ws, type, data) {
 
 function emit(type, data, room, exclude) {
   for (var un in clients) {
-    console.log(un)
     if (clients[un].room == room && un != exclude)
       send(clients[un], type, data);
   }
@@ -85,7 +84,7 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     console.log('Disconnected:', ws.un)
     if (ws.li) {
-      emit('disconnected', ws.un, ws.room, ws.un)
+      emit('disconnect', ws.un, ws.room, ws.un)
     }
     delete clients[ws.un];
   });
