@@ -1,24 +1,26 @@
 $ = x => document.querySelector(x);
 
+var ws;
+var un;
+var room;
+var loggedin = false;
+
 $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#send').onclick = x => send($('#msg').value);
-$('#leave').onclick = x => $('#login').showPopover();
+$('#leave').onclick = x => { $('#login').showPopover(); loggedin = false; ws.close() };
 $('#libtn').onclick = x => login();
 
 $('#login').showPopover();
 
-var ws;
-
 function send(value) {
   console.log(value);
-  ws.send(JSON.stringify({send: k}));
+  ws.send(JSON.stringify({ msg: value }));
+  mkmsg(value.from, value.data);
 }
 
 function recv(value) {
   console.log(value);
-  var x = JSON.parse(value);
-  x = x[Object.keys(x)[0]];
-  mkmsg(x.from, x.data);
+  mkmsg(value.from, value.data);
 }
 
 function mkmsg(from, data) {
@@ -46,6 +48,42 @@ function colorhash(x) {
   return '#' + Math.floor(y % 0xffffff).toString(16);
 }
 
-function setupws(){
-  ws = new WebSocket();
+function login() {
+  un = $('#username').value;
+  room = $('#room').value;
+  ws = new WebSocket((window.location.protocol == 'http:' ? 'ws://' : 'wss://') + window.location.host);
+  ws.onmessage = value => {
+    var x = JSON.parse(value.data);
+    var y = Object.keys(x)[0];
+    x = x[y];
+    switch (y) {
+      case 'li':
+        if (x == "") {
+          $('#login').hidePopover();
+          $('#undisplay').innerText = un;
+        } else {
+          $('#lilog').innerText = 'failed to sign in: ' + x;
+        }
+        break;
+      case 'msg':
+        recv(x);
+        break;
+    }
+  };
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      li: {
+        username: un,
+        room,
+      }
+    }))
+  };
+  ws.onclose = (x) => {
+    if (loggedin) {
+      $('#login').showPopover();
+      $('#login div').innerText = 'disconnected. please reload';
+    } else {
+      $('#lilog').innerText = 'failed to sign in: failed to connect to server';
+    }
+  }
 }
