@@ -110,3 +110,7 @@ body > *:not(#login) {
 .undisplay {
   font-weight: bold;
 }
+
+#lilog {
+  color: red;
+}
