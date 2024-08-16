@@ -109,7 +109,7 @@ body > *:not(#login) {
   cursor: pointer;
 }
 
-.usertag {
+.usertag, #undisplay {
   font-weight: bold;
 }
 

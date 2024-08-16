@@ -7,7 +7,9 @@ var loggedin = false;
 
 if (window.localStorage) {
   un = localStorage.un;
+  $('#username').value = un;
   room = localStorage.room;
+  $('#room').value = room;
 }
 
 $('#username').onkeypress = x => {
