@@ -15,7 +15,7 @@ $('#login').showPopover();
 function send(value) {
   console.log(value);
   ws.send(JSON.stringify({ msg: value }));
-  mkmsg(value.from, value.data);
+  mkmsg(un, value);
 }
 
 function recv(value) {
@@ -61,6 +61,8 @@ function login() {
         if (x == "") {
           $('#login').hidePopover();
           $('#undisplay').innerText = un;
+          $('#roomdisplay').innerText = room;
+          loggedin = true;
         } else {
           $('#lilog').innerText = 'failed to sign in: ' + x;
         }
