@@ -51,7 +51,8 @@ function recv(value) {
   mkmsg(value.from, value.data);
   var x = new Audio('ping.mp3');
   x.volume = 0.5;
-  x.play();
+  x.onload = () =>
+    x.play();
 }
 
 function mkmsg(from, data) {
