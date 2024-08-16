@@ -5,7 +5,7 @@ var un;
 var room;
 var loggedin = false;
 
-if (window.localStorage) {
+if (window.localStorage && localStorage.un) {
   un = localStorage.un;
   $('#username').value = un;
   room = localStorage.room;
