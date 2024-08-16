@@ -79,6 +79,17 @@ wss.on('connection', (ws) => {
         emit('msg', { from: ws.un, data: x }, ws.room, ws.un);
 
         break;
+      case 'users':
+
+        var ul = [];
+        for(var un in clients){
+          if(clients[un].room == ws.room){
+            ul.push(un);
+          }
+        }
+        send(ws, 'users', ul);
+
+        break;
     }
   });
 

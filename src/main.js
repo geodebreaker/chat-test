@@ -4,6 +4,8 @@ var ws;
 var un;
 var room;
 var loggedin = false;
+var menuopen = false;
+var userlist = [];
 
 if (window.localStorage && localStorage.un) {
   un = localStorage.un;
@@ -19,14 +21,21 @@ $('#username').onkeypress = x => {
 $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#room').onkeypress = x => { if (x.key == 'Enter') $('#libtn').click() };
 $('#send').onclick = x => send($('#msg').value);
-$('#leave').onclick = x => { 
-  $('#login').showPopover(); 
-  loggedin = null; 
+$('#leave').onclick = x => {
+  $('#login').showPopover();
+  loggedin = null;
   ws.close();
   $('#chat').innerHTML = '';
+  userlist = [];
 };
 $('#libtn').onclick = x => login();
-$('#un');
+$('#openmenu').onclick = x => {
+  menuopen = !menuopen;
+  $('body').style.gridTemplateAreas =
+    "'u r r l o' 'c c " + (menuopen ? "x x x" : "c c c") + "' 'm m m s s'";
+  $('#menu').style.display = (menuopen ? 'block' : 'none');
+  ws.send(JSON.stringify({ users: '' }));
+};
 
 $('#login').showPopover();
 
@@ -56,7 +65,7 @@ function mkmsg(from, data) {
 function mkalert(type, data, un) {
   var m = document.createElement('span');
   m.innerText = data;
-  m.className = type ? 'good' : 'bad';
+  m.className = type ? 'bad' : 'good';
   var u = document.createElement('span');
   u.innerText = un;
   u.className = 'usertag';
@@ -65,8 +74,19 @@ function mkalert(type, data, un) {
   updateChat();
 }
 
-function updateChat(){
+function updateChat() {
   $('#chat').scrollTop = $('#chat').scrollHeight;
+}
+
+function updateMenu() {
+  $('#menu').innerHTML = '';
+  for (var un of userlist) {
+    var u = document.createElement('span');
+    u.innerText = un;
+    u.className = 'usertag';
+    u.style.color = colorhash(un);
+    $('#menu').innerHTML += u.outerHTML + '<br>';
+  }
 }
 
 function colorhash(x) {
@@ -131,9 +151,17 @@ function login() {
         break;
       case 'connect':
         mkalert(false, 'connected: ', x);
+        userlist.push(x);
+        updateMenu();
         break;
       case 'disconnect':
         mkalert(true, 'disconnected: ', x);
+        userlist.splice(userlist.indexOf(x), 1);
+        updateMenu();
+        break;
+      case 'users':
+        userlist = x;
+        updateMenu();
         break;
     }
   };

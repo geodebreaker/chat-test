@@ -3,10 +3,10 @@ body {
   background: #222;
   display: grid;
   grid-template-areas:
-    'r u u l'
-    'c c c c'
-    'm m s s';
-  grid-template-columns: auto auto 25px 25px;
+    'u r r l o'
+    'c c c c c'
+    'm m m s s';
+  grid-template-columns: auto auto 125px 25px 25px;
   grid-template-rows: 25px auto 50px;
   gap: 10px;
   font-family: monospace;
@@ -30,7 +30,7 @@ button {
   height: 50px;
 }
 
-body > *:not(#login) {
+body > *:not(#login, #menu) {
   border: 1px solid #888;
   display: inline-block;
   box-sizing: border-box;
@@ -49,6 +49,16 @@ body > *:not(#login) {
   height: 25px;
   width: 25px;
   background-image: url('leave.svg');
+  background-size: 15px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#openmenu {
+  grid-area: o;
+  height: 25px;
+  width: 25px;
+  background-image: url('menu.svg');
   background-size: 15px;
   background-position: center;
   background-repeat: no-repeat;
@@ -123,4 +133,11 @@ body > *:not(#login) {
 
 .good {
   color: green;
+}
+
+#menu {
+  display: none;
+  width: 195px;
+  border: 1px solid #888;
+  box-sizing: border-box;
 }
