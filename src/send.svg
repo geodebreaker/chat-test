@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 70 110" xmlns="http://www.w3.org/2000/svg">
+  <g transform="matrix(1, 0, 0, 1, 5, 5)">
+    <path style="stroke: #888; stroke-width: 5px; stroke-linecap: round;" d="M 30 0 L 30 100"/>
+    <path style="stroke: #888; stroke-width: 5px; stroke-linecap: square;" d="M 0 30 L 30 0"/>
+    <path style="stroke: #888; stroke-width: 5px; stroke-linecap: square;" d="M 60 30 L 30 0"/>
+  </g>
+</svg>
