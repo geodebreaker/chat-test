@@ -6,13 +6,10 @@ const svr = http.createServer((req, res) => {
   var url = req.url;
   url = url.replace(/\.\./g, '.');
   url = url.replace(/\/$/, '/index.html');
-  fs.readFile('../src/' + url, (err, data) => {
-    console.log(err ? 'fail:' : 'success:', url);
-    var f = x => url.endsWith(x);
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/html' });
-      res.end('404: File not found');
-    } else {
+  var f = x => url.endsWith(x);
+
+  fetch('https://cdn.jsdelivr.net/gh/geodebreaker/chat-test/src'+url)
+    .then(x => {
       res.writeHead(200, {
         'Content-Type':
           (
@@ -24,9 +21,29 @@ const svr = http.createServer((req, res) => {
                       'text/html'
           )
       });
-      res.end(data);
-    }
-  });
+      return x.text();
+    }).then(x => res.end(x));
+
+  // fs.readFile('../src/' + url, (err, data) => {
+  //   console.log(err ? 'fail:' : 'success:', url);
+  //   if (err) {
+  //     res.writeHead(404, { 'Content-Type': 'text/html' });
+  //     res.end('404: File not found');
+  //   } else {
+  //     res.writeHead(200, {
+  //       'Content-Type':
+  //         (
+  //           f('js') ? 'application/javascript' :
+  //             f('css') ? 'text/css' :
+  //               f('jpg') ? 'image/jpg' :
+  //                 f('svg') ? 'image/svg+xml' :
+  //                   f('png') ? 'image/png' :
+  //                     'text/html'
+  //         )
+  //     });
+  //     res.end(data);
+  //   }
+  // });
 });
 
 var wss = new ws.Server({ server: svr });
@@ -82,8 +99,8 @@ wss.on('connection', (ws) => {
       case 'users':
 
         var ul = [];
-        for(var un in clients){
-          if(clients[un].room == ws.room){
+        for (var un in clients) {
+          if (clients[un].room == ws.room) {
             ul.push(un);
           }
         }
@@ -104,4 +121,4 @@ wss.on('connection', (ws) => {
 });
 
 
-svr.listen(8080);
+svr.listen(process.env.PORT ?? 8080);
