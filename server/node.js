@@ -31,22 +31,22 @@ const svr = http.createServer((req, res) => {
     });
   };
 
-  // fetch('https://cdn.jsdelivr.net/gh/geodebreaker/chat-test/src'+url)
-  //   .then(x => {
-  //     s();
-  //     return x.text();
-  //   }).then(x => res.end(x));
-
-  fs.readFile('../src/' + url, (err, data) => {
-    console.log(err ? 'fail:' : 'success:', url);
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/html' });
-      res.end('404: File not found');
-    } else {
+  fetch('https://cdn.jsdelivr.net/gh/geodebreaker/chat-test/src'+url)
+    .then(x => {
       s();
-      res.end(data);
-    }
-  });
+      return x.text();
+    }).then(x => res.end(x));
+
+  // fs.readFile('../src/' + url, (err, data) => {
+  //   console.log(err ? 'fail:' : 'success:', url);
+  //   if (err) {
+  //     res.writeHead(404, { 'Content-Type': 'text/html' });
+  //     res.end('404: File not found');
+  //   } else {
+  //     s();
+  //     res.end(data);
+  //   }
+  // });
 });
 
 var wss = new ws.Server({ server: svr });
