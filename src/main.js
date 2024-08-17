@@ -49,9 +49,10 @@ function send(value) {
 
 function recv(value) {
   mkmsg(value.from, value.data);
-  var x = new Audio('ping.mp3');
-  x.volume = 0.5;
-  x.onload = () =>
+
+  x = new Audio(ping);
+  x.volume = document.visibilityState == 'visible' ? 1 : 0.5;
+  x.oncanplay = () =>
     x.play();
 }
 
@@ -191,3 +192,6 @@ setInterval(() => {
   if (ws && ws.readyState == ws.OPEN)
     ws.send(JSON.stringify({ ping: '' }))
 }, 10e3);
+
+var ping;
+fetch('ping.mp3').then(x=>x.blob()).then(x=>ping=URL.createObjectURL(x));

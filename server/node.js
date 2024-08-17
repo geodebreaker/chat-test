@@ -3,47 +3,50 @@ const fs = require('fs');
 const ws = require('ws');
 
 const svr = http.createServer((req, res) => {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Request-Method', '*');
+	res.setHeader('Access-Control-Allow-Methods', '*');
+	res.setHeader('Access-Control-Allow-Headers', '*');
+	if ( req.method === 'OPTIONS' ) {
+		res.writeHead(200);
+		res.end();
+		return;
+	}
   var url = req.url;
   url = url.replace(/\.\./g, '.');
   url = url.replace(/\/$/, '/index.html');
   var f = x => url.endsWith(x);
-
-  fetch('https://cdn.jsdelivr.net/gh/geodebreaker/chat-test/src'+url)
-    .then(x => {
-      res.writeHead(200, {
-        'Content-Type':
-          (
-            f('js') ? 'application/javascript' :
-              f('css') ? 'text/css' :
-                f('jpeg') ? 'image/jpeg' :
-                  f('svg') ? 'image/svg+xml' :
-                    f('png') ? 'image/png' :
+  var s = () => {
+    res.writeHead(200, {
+      'Content-Type':
+        (
+          f('js') ? 'application/javascript' :
+            f('css') ? 'text/css' :
+              f('jpg') ? 'image/jpeg' :
+                f('svg') ? 'image/svg+xml' :
+                  f('png') ? 'image/png' :
+                    f('mp3') ? 'audio/mp3' :
                       'text/html'
-          )
-      });
-      return x.text();
-    }).then(x => res.end(x));
+        )
+    });
+  };
 
-  // fs.readFile('../src/' + url, (err, data) => {
-  //   console.log(err ? 'fail:' : 'success:', url);
-  //   if (err) {
-  //     res.writeHead(404, { 'Content-Type': 'text/html' });
-  //     res.end('404: File not found');
-  //   } else {
-  //     res.writeHead(200, {
-  //       'Content-Type':
-  //         (
-  //           f('js') ? 'application/javascript' :
-  //             f('css') ? 'text/css' :
-  //               f('jpg') ? 'image/jpg' :
-  //                 f('svg') ? 'image/svg+xml' :
-  //                   f('png') ? 'image/png' :
-  //                     'text/html'
-  //         )
-  //     });
-  //     res.end(data);
-  //   }
-  // });
+  // fetch('https://cdn.jsdelivr.net/gh/geodebreaker/chat-test/src'+url)
+  //   .then(x => {
+  //     s();
+  //     return x.text();
+  //   }).then(x => res.end(x));
+
+  fs.readFile('../src/' + url, (err, data) => {
+    console.log(err ? 'fail:' : 'success:', url);
+    if (err) {
+      res.writeHead(404, { 'Content-Type': 'text/html' });
+      res.end('404: File not found');
+    } else {
+      s();
+      res.end(data);
+    }
+  });
 });
 
 var wss = new ws.Server({ server: svr });
