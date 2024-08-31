@@ -100,22 +100,22 @@ const svr = http.createServer((req, res) => {
     });
   };
 
-  // fetch('https://geodebreaker.github.io/chat-test/src/' + url)
-  //   .then(x => {
-  //     res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
-  //     return x.text();
-  //   }).then(x => res.end(x));
+  fetch('https://geodebreaker.github.io/chat-test/src/' + url)
+    .then(x => {
+      res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
+      return x.text();
+    }).then(x => res.end(x));
 
-  fs.readFile('../src/' + url, (err, data) => {
-    console.log(err ? 'fail:' : 'success:', url);
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/html' });
-      res.end('404: File not found');
-    } else {
-      s();
-      res.end(data);
-    }
-  });
+  // fs.readFile('../src/' + url, (err, data) => {
+  //   console.log(err ? 'fail:' : 'success:', url);
+  //   if (err) {
+  //     res.writeHead(404, { 'Content-Type': 'text/html' });
+  //     res.end('404: File not found');
+  //   } else {
+  //     s();
+  //     res.end(data);
+  //   }
+  // });
 });
 
 var wss = new ws.Server({ server: svr });
