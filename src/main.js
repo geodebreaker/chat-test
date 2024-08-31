@@ -1,4 +1,5 @@
 $ = x => document.querySelector(x);
+$$ = x => document.querySelectorAll(x);
 
 var ws;
 var un;
@@ -14,6 +15,10 @@ if (window.localStorage && localStorage.un) {
   $('#room').value = room;
 }
 
+document.addEventListener('click', e => {
+  if (!(e.target == $('#rclick') || $('#rclick').contains(e.target)))
+    $('#rclick').hidePopover();
+});
 $('#username').onkeypress = x => {
   if (x.key == 'Enter') $('#room').focus();
   $('#username').style.color = colorhash($('#username').value + (x.key.length == 1 ? x.key : ''))
@@ -34,21 +39,23 @@ $('#openmenu').onclick = x => {
   $('body').style.gridTemplateAreas =
     "'u r r l o' 'c c " + (menuopen ? "x x x" : "c c c") + "' 'm m m s s'";
   $('#menu').style.display = (menuopen ? 'block' : 'none');
-  ws.send(JSON.stringify({ users: '' }));
+  if(menuopen)
+    ws.send(JSON.stringify({ users: '' }));
 };
 
 $('#login').showPopover();
 
 function send(value) {
   if (value != '') {
-    ws.send(JSON.stringify({ msg: value }));
-    mkmsg(un, value);
+    var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
+    ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
+    mkmsg(un, value, id, Date.now());
     $('#msg').value = '';
   }
 }
 
 function recv(value) {
-  mkmsg(value.from, value.data);
+  mkmsg(value.from, value.data, value.id, Date.now());
 
   x = new Audio(ping);
   x.volume = document.visibilityState == 'visible' ? 1 : 0.5;
@@ -56,13 +63,22 @@ function recv(value) {
     x.play();
 }
 
-function mkmsg(from, data) {
+function mkmsg(from, data, id, date) {
   var u = document.createElement('span');
   u.innerText = from + ': ';
   u.className = 'usertag';
   u.style.color = colorhash(from);
+  u.setAttribute('oncontextmenu', 'rclick(event)');
+  u.dataset.id = id;
+  u.dataset.date = date;
+
   var m = document.createElement('span');
   m.innerText = data;
+  m.oncontextmenu = 'rclick';
+  m.setAttribute('oncontextmenu', 'rclick(event)');
+  m.dataset.id = id;
+  m.dataset.date = date;
+
   $('#chat').innerHTML += u.outerHTML + m.outerHTML + '<br>';
   updateChat();
 }
@@ -92,6 +108,20 @@ function updateMenu() {
     u.style.color = colorhash(un);
     $('#menu').innerHTML += u.outerHTML + '<br>';
   }
+}
+
+function rclick(event) {
+  event.preventDefault();
+  $('#rclick').style.left = event.clientX + 'px';
+  $('#rclick').style.top = event.clientY + 'px';
+  $('#rc-date').innerText = fmtDate(event.target.dataset.date);
+  $('#rclick').showPopover();
+}
+
+function fmtDate(ms) {
+  var x = new Date(parseInt(ms));
+  return `${x.getMonth()}/${x.getDay()}/${x.getFullYear()} ` +
+    `${x.getHours() % 12}:${x.getMinutes()} ${x.getHours() > 12 ? 'PM' : 'AM'}`;
 }
 
 function colorhash(x) {
@@ -139,6 +169,7 @@ function login() {
     var x = JSON.parse(value.data);
     var y = Object.keys(x)[0];
     x = x[y];
+    console.log(y + ':', x);
     switch (y) {
       case 'li':
         if (x == "") {
@@ -168,6 +199,12 @@ function login() {
         userlist = x;
         updateMenu();
         break;
+      case 'roommsg':
+        x.map(m => mkmsg(m.user, m.text, m.id, m.date));
+        break;
+      case 'updateid':
+        $$('[data-id="' + x.tmpid + '"]').forEach(y => y.dataset.id = x.newid)
+        break;
     }
   };
   ws.onopen = () => {
@@ -194,4 +231,4 @@ setInterval(() => {
 }, 10e3);
 
 var ping;
-fetch('ping.mp3').then(x=>x.blob()).then(x=>ping=URL.createObjectURL(x));
+fetch('ping.mp3').then(x => x.blob()).then(x => ping = URL.createObjectURL(x));

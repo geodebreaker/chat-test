@@ -30,7 +30,7 @@ button {
   height: 50px;
 }
 
-body > *:not(#login, #menu) {
+body > *:not(#login, #menu, #rclick) {
   border: 1px solid #888;
   display: inline-block;
   box-sizing: border-box;
@@ -140,4 +140,11 @@ body > *:not(#login, #menu) {
   width: 195px;
   border: 1px solid #888;
   box-sizing: border-box;
+}
+
+#rclick {
+  position: fixed;
+  top: 0;
+  left: 0;
+  margin: 0px;
 }
