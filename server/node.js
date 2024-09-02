@@ -3,6 +3,8 @@ const http = require('http');
 const fs = require('fs');
 const ws = require('ws');
 const mysql = require('mysql2');
+const stream = require('stream');
+const URL = require('url');
 
 process.on('unhandledExeption', (reason) => {
   console.error(reason);
@@ -36,39 +38,76 @@ setInterval(() => {
       console.log('Keep-alive query executed');
     }
   });
-}, 300000);  // 5 minutes
+}, 60e3);
+
+var usercache = [];
 
 function getRoomData(room) {
   return new Promise((y, n) => {
     const sql = 'SELECT * FROM msg WHERE room=?';
-      conn.query(sql, [room], (error, results) => {
-        console.log(`Got room data for room ${room}`)
-        y(results
-          .map(x => ({ date: Date.parse(x.date), user: getUser(x.user), text: x.text, id: x.id }))
-          .sort((a, b) => a.date - b.date)
-        );
-      });
+    conn.query(sql, [room], async (error, results) => {
+      console.log(`Got room data for room ${room}`)
+      y(
+        (await Promise.all(results
+          .map(async x => ({ date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id, tag: await getUserTag(x.user) }))
+        )).sort((a, b) => a.date - b.date)
+      );
+    });
   });
 }
 
 function putMsg(user, room, text) {
   return new Promise((y, n) => {
     const sql = 'INSERT INTO msg (user, room, text) VALUES (?, ?, ?)';
-      conn.query(sql, [user, room, text], (error, results) => {
+    conn.query(sql, [user, room, text], (error, results) => {
+      if (error) {
+        n(error);
+        return;
+      }
+      console.log(`Put message ${text} from ${user} in ${room}`)
+      y(results.insertId);
+    });
+  });
+}
+
+function fromUserCache(type, value, newType) {
+  return new Promise((y, n) => {
+    var u = usercache.find(x => x[type] == value && Date.now() - x.time < 3600e3);
+    if (u) {
+      console.log(`UCache hit: ${type} ${value} ${newType} -> ${u[newType]}`);
+      y(u[newType]);
+    } else {
+      const sql = 'SELECT * FROM users WHERE ' + type + '=?';
+      conn.query(sql, [value], (error, results) => {
         if (error) {
           n(error);
           return;
         }
-        console.log(`Put message ${text} from ${user} in ${room}`)
-        y(results.insertId);
+        var res = results[0];
+        if (res) {
+          usercache.push({ id: results[0].id, un: results[0].un, pw: results[0].pw, perm: results[0].perm, time: Date.now() });
+          console.log(`UCache miss: ${type} ${value} ${newType} -> ${res[newType]}`);
+        }
+        y((res ?? {})[newType]);
       });
+    }
   });
 }
 
-//TODO: add user system
 function getUser(id) {
-  console.log(`Got user ${id} for id ${id}`);
-  return id;
+  return fromUserCache('id', id, 'un');
+}
+
+function getUserTag(id) {
+  return fromUserCache('id', id, 'perm');
+}
+
+function fromUsername(un) {
+  return fromUserCache('un', un, 'id');
+}
+
+async function checkPw(id, pw) {
+  return (await fromUserCache('id', id, 'pw')) == pw;
 }
 
 const svr = http.createServer((req, res) => {
@@ -84,6 +123,26 @@ const svr = http.createServer((req, res) => {
   var url = req.url;
   url = url.replace(/\.\./g, '.');
   url = url.replace(/\/$/, '/index.html');
+
+  var q = URL.parse(url, true).query;
+  if (url.startsWith('/api/sql') && q.cred == process.env.ADMIN_KEY) {
+    const sql = q.query;
+    conn.query(sql, (error, results) => {
+      if (error) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(error.stack);
+      }else {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(results));
+      }
+    });
+    return;
+  }
+
+  if (url.startsWith('/api/restart') && q.cred == process.env.ADMIN_KEY) {
+    process.exit(1);
+  }
+
   var f = x => url.endsWith(x);
   var s = () => {
     res.writeHead(200, {
@@ -100,22 +159,24 @@ const svr = http.createServer((req, res) => {
     });
   };
 
-  fetch('https://geodebreaker.github.io/chat-test/src/' + url)
-    .then(x => {
-      res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
-      return x.text();
-    }).then(x => res.end(x));
-
-  // fs.readFile('../src/' + url, (err, data) => {
-  //   console.log(err ? 'fail:' : 'success:', url);
-  //   if (err) {
-  //     res.writeHead(404, { 'Content-Type': 'text/html' });
-  //     res.end('404: File not found');
-  //   } else {
-  //     s();
-  //     res.end(data);
-  //   }
-  // });
+  if (process.env.AWS) {
+    fetch('https://geodebreaker.github.io/chat-test/src/' + url)
+      .then(x => {
+        res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
+        stream.pipeline(x.body, res, (err) => { });
+      })
+  } else {
+    fs.readFile('../src/' + url, (err, data) => {
+      console.log(err ? 'fail:' : 'success:', url);
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('404: File not found');
+      } else {
+        s();
+        res.end(data);
+      }
+    });
+  }
 });
 
 var wss = new ws.Server({ server: svr });
@@ -139,9 +200,11 @@ function emit(type, data, room, exclude) {
 wss.on('connection', (ws) => {
   ws.li = false;
   ws.un = '';
+  ws.uid = null;
   ws.room = null;
+  ws.tag = 1;
 
-  ws.on('message', (message) => {
+  ws.on('message', async (message) => {
     console.log(`Received from ${ws.un}: ${message}`);
 
     var x = JSON.parse(message);
@@ -150,14 +213,30 @@ wss.on('connection', (ws) => {
 
     switch (y) {
       case 'li':
-        if (clients[x.username] || x.username.length < 2 || x.username.length > 12) {
+        if (x.username.length < 2 || x.username.length > 12) {
           return send(ws, 'li', 'bad username');
         }
 
+        if (clients[x.username]) {
+          return send(ws, 'li', 'already signed in');
+        }
+
+        var id = await fromUsername(x.username);
+
+        if (!id) {
+          return send(ws, 'li', 'user does not exist');
+        }
+
+        if (!await checkPw(id, x.password)) {
+          return send(ws, 'li', 'bad password');
+        }
+
+        ws.uid = id;
         ws.un = x.username;
+        ws.tag = await getUserTag(ws.uid);
         ws.room = x.room;
         ws.li = true;
-        emit('connect', ws.un, ws.room, ws.un);
+        emit('connect', [ws.un, ws.tag], ws.room, ws.un);
         send(ws, 'li', '');
         console.log(`${ws.un} logged into room ${ws.room}`);
         clients[ws.un] = ws;
@@ -169,7 +248,9 @@ wss.on('connection', (ws) => {
       case 'msg':
 
         putMsg(ws.un, ws.room, x.value).then(id => {
-          emit('msg', { from: ws.un, data: x.value, id: x.value, date: Date.now() }, ws.room, ws.un);
+          emit('msg',
+            { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },
+            ws.room, ws.un);
           send(ws, 'updateid', { tmpid: x.tmpid, newid: id });
         });
 
@@ -179,7 +260,7 @@ wss.on('connection', (ws) => {
         var ul = [];
         for (var un in clients) {
           if (clients[un].room == ws.room) {
-            ul.push(un);
+            ul.push([un, true, clients[un].tag]);
           }
         }
         send(ws, 'users', ul);
@@ -188,11 +269,10 @@ wss.on('connection', (ws) => {
     }
   });
 
-  // Event handler for WebSocket connection closing
   ws.on('close', () => {
     console.log('Disconnected:', ws.un)
     if (ws.li) {
-      emit('disconnect', ws.un, ws.room, ws.un)
+      emit('disconnect', [ws.un, ws.tag], ws.room, ws.un)
     }
     delete clients[ws.un];
   });

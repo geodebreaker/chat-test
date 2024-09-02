@@ -104,7 +104,7 @@ body > *:not(#login, #menu, #rclick) {
   inset: 0;
   background: #222;
   width: 400px;
-  height: 300px;
+  height: 400px;
   margin: auto;
   color: white;
 }
@@ -148,3 +148,18 @@ body > *:not(#login, #menu, #rclick) {
   left: 0;
   margin: 0px;
 }
+/* 
+.tag {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  vertical-align: middle;
+  margin-left: 8px;
+  background-repeat: no-repeat;
+}
+
+.tag._0 { background-image: url('tag-0.svg'); }
+.tag._1 { background-image: url('tag-1.svg'); }
+.tag._2 { background-image: url('tag-2.svg'); }
+.tag._3 { background-image: url('tag-3.svg'); }
+.tag._4 { background-image: url('tag-4.svg'); } */
