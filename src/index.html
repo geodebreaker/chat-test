@@ -23,25 +23,26 @@
   <button id="leave"></button>
   <button id="openmenu"></button>
   <div id="chat"></div>
-  <input id="msg" placeholder="Type message here..." name="dont autofill!!">
+  <input id="msg" placeholder="Type message here..." name="dont autofill!!" autocomplete="off">
   <button id="send"></button>
   <div id="menu"></div>
   <div id="login" popover="manual">
     <div>
       <b>sign in</b><br><br>
-      <span>username:</span><br>
-      <input id="username" name="plz dont autofill 😭😭💀😭"><br>
-      <span>password:</span><br>
-      <input id="password" type="password" name="dont autofill real"><br><br>
-      <span>room:</span><br>
-      <input id="room" name="also dont autofill plz" placeholder="leave blank for main"><br>
-      <input id="libtn" type="button" value="login"><br>
-      <span id="lilog"></span>
+      <form>
+        <input id="username" placeholder="username" autocomplete="username"><br>
+        <input id="password" type="password" placeholder="password" autocomplete="current-password"><br><br>
+        <span>room:</span><br>
+        <input id="room" placeholder="leave blank for main" autocomplete="off"><br>
+        <input id="libtn" type="button" value="login"><br>
+        <span id="lilog"></span>
+      </form>
     </div>
   </div>
   <div id="rclick" popover="manual">
-    <div id="rc-date"><div>
-  </div>
+    <div id="rc-date">
+      <div>
+      </div>
 </body>
 
 </html>
