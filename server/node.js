@@ -131,7 +131,7 @@ const svr = http.createServer((req, res) => {
       if (error) {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end(error.stack);
-      }else {
+      } else {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(results));
       }
@@ -265,6 +265,9 @@ wss.on('connection', (ws) => {
         }
         send(ws, 'users', ul);
 
+        break;
+      case 'ping':
+        send(ws, 'ping', '');
         break;
     }
   });
