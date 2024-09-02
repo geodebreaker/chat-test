@@ -247,7 +247,7 @@ wss.on('connection', (ws) => {
         break;
       case 'msg':
 
-        putMsg(ws.un, ws.room, x.value).then(id => {
+        putMsg(ws.uid, ws.room, x.value).then(id => {
           emit('msg',
             { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },
             ws.room, ws.un);
