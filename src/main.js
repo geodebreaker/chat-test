@@ -4,6 +4,7 @@ $$ = x => document.querySelectorAll(x);
 var ws;
 var un;
 var room;
+var notif = 0;
 var loggedin = false;
 var menuopen = false;
 var userlist = [];
@@ -20,6 +21,7 @@ document.addEventListener('click', e => {
   if (!(e.target == $('#rclick') || $('#rclick').contains(e.target)))
     $('#rclick').hidePopover();
 });
+document.onvisibilitychange = () => { notif = 0; updateTitle() };
 $('#username').onkeypress = x => {
   if (x.key == 'Enter') $('#room').focus();
   $('#username').style.color = colorhash($('#username').value + (x.key.length == 1 ? x.key : ''))
@@ -28,12 +30,12 @@ $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#room').onkeypress = x => { if (x.key == 'Enter') $('#libtn').click() };
 $('#send').onclick = x => send($('#msg').value);
 $('#leave').onclick = x => {
-  $('title').innerText = 'gooberchat';
   $('#login').showPopover();
   loggedin = null;
   ws.close();
   $('#chat').innerHTML = '';
   userlist = [];
+  updateTitle();
 };
 $('#libtn').onclick = x => login();
 $('#openmenu').onclick = x => {
@@ -58,6 +60,11 @@ function send(value) {
 
 function recv(value) {
   mkmsg(value.from, value.data, value.id, value.date, value.tag);
+
+  if (document.visibilityState != 'visible') {
+    notif++;
+    updateTitle()
+  }
 
   x = new Audio(ping);
   x.volume = document.visibilityState == 'visible' ? 1 : 0.5;
@@ -112,6 +119,13 @@ function updateMenu() {
     u.style.color = colorhash(un[0]);
     $('#menu').innerHTML += u.outerHTML + '<br>';
   }
+}
+
+function updateTitle() {
+  $('title').innerText =
+    (notif > 0 ? '(' + notif + ')' : '') +
+    ' gooberchat' +
+    (loggedin ? ' - ' + room : '');
 }
 
 function rclick(event) {
@@ -201,7 +215,7 @@ function login() {
         break;
       case 'disconnect':
         mkalert(true, 'disconnected: ', x[0]);
-        userlist.splice(userlist.findIndex(z=>z[0]==x[0]), 1);
+        userlist.splice(userlist.findIndex(z => z[0] == x[0]), 1);
         updateMenu();
         break;
       case 'users':
@@ -229,7 +243,8 @@ function login() {
     if (loggedin) {
       $('#login').showPopover();
       $('#login div').innerText = 'disconnected. please reload';
-      $('title').innerText = 'gooberchat';
+      loggedin = false;
+      updateTitle();
     } else if (loggedin !== null) {
       $('#lilog').innerText = 'failed to sign in: failed to connect to server';
     }
