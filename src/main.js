@@ -28,6 +28,7 @@ $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#room').onkeypress = x => { if (x.key == 'Enter') $('#libtn').click() };
 $('#send').onclick = x => send($('#msg').value);
 $('#leave').onclick = x => {
+  $('title').innerText = 'gooberchat';
   $('#login').showPopover();
   loggedin = null;
   ws.close();
@@ -185,6 +186,7 @@ function login() {
           $('#undisplay').style.color = colorhash(un);
           $('#roomdisplay').innerText = room;
           loggedin = true;
+          $('title').innerText = 'gooberchat - ' + room;
         } else {
           $('#lilog').innerText = 'failed to sign in: ' + x;
         }
@@ -227,6 +229,7 @@ function login() {
     if (loggedin) {
       $('#login').showPopover();
       $('#login div').innerText = 'disconnected. please reload';
+      $('title').innerText = 'gooberchat';
     } else if (loggedin !== null) {
       $('#lilog').innerText = 'failed to sign in: failed to connect to server';
     }

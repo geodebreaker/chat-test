@@ -6,7 +6,7 @@ const mysql = require('mysql2');
 const stream = require('stream');
 const URL = require('url');
 
-process.on('unhandledExeption', (reason) => {
+process.on('unhandledException', (reason) => {
   console.error(reason);
 })
 
