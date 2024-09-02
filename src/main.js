@@ -123,8 +123,8 @@ function updateMenu() {
 
 function updateTitle() {
   $('title').innerText =
-    (notif > 0 ? '(' + notif + ')' : '') +
-    ' gooberchat' +
+    (notif > 0 ? '(' + notif + ') ' : '') +
+    'gooberchat' +
     (loggedin ? ' - ' + room : '');
 }
 
