@@ -11,6 +11,7 @@ var userlist = [];
 if (window.localStorage && localStorage.un) {
   un = localStorage.un;
   $('#username').value = un;
+  $('#password').value = localStorage.pw;
   room = localStorage.room;
   $('#room').value = room;
 }
@@ -39,7 +40,7 @@ $('#openmenu').onclick = x => {
   $('body').style.gridTemplateAreas =
     "'u r r l o' 'c c " + (menuopen ? "x x x" : "c c c") + "' 'm m m s s'";
   $('#menu').style.display = (menuopen ? 'block' : 'none');
-  if(menuopen)
+  if (menuopen)
     ws.send(JSON.stringify({ users: '' }));
 };
 
@@ -55,7 +56,7 @@ function send(value) {
 }
 
 function recv(value) {
-  mkmsg(value.from, value.data, value.id, Date.now());
+  mkmsg(value.from, value.data, value.id, value.date, value.tag);
 
   x = new Audio(ping);
   x.volume = document.visibilityState == 'visible' ? 1 : 0.5;
@@ -63,9 +64,10 @@ function recv(value) {
     x.play();
 }
 
-function mkmsg(from, data, id, date) {
+function mkmsg(from, data, id, date, tag) {
   var u = document.createElement('span');
-  u.innerText = from + ': ';
+  u.innerText = from;
+  u.innerHTML += `<span class="tag _${tag}"></span>` + ': ';
   u.className = 'usertag';
   u.style.color = colorhash(from);
   u.setAttribute('oncontextmenu', 'rclick(event)');
@@ -103,9 +105,10 @@ function updateMenu() {
   $('#menu').innerHTML = '';
   for (var un of userlist) {
     var u = document.createElement('span');
-    u.innerText = un;
+    u.innerText = un[0];
+    u.innerHTML += `<span class="tag _${un[2]}"></span>`;
     u.className = 'usertag';
-    u.style.color = colorhash(un);
+    u.style.color = colorhash(un[0]);
     $('#menu').innerHTML += u.outerHTML + '<br>';
   }
 }
@@ -120,8 +123,10 @@ function rclick(event) {
 
 function fmtDate(ms) {
   var x = new Date(parseInt(ms));
+  var y = x.getHours() % 12;
+  var z = x.getMinutes().toString();
   return `${x.getMonth()}/${x.getDay()}/${x.getFullYear()} ` +
-    `${x.getHours() % 12}:${x.getMinutes()} ${x.getHours() > 12 ? 'PM' : 'AM'}`;
+    `${y == 0 ? 12 : y}:${z.length == 1 ? '0' + z : z} ${x.getHours() > 11 ? 'PM' : 'AM'}`;
 }
 
 function colorhash(x) {
@@ -160,9 +165,11 @@ function colorhash(x) {
 function login() {
   un = $('#username').value;
   room = $('#room').value;
+  var pw = $('#password').value;
   if (window.localStorage) {
     localStorage.un = un;
     localStorage.room = room;
+    localStorage.pw = pw;
   }
   ws = new WebSocket((window.location.protocol == 'http:' ? 'ws://' : 'wss://') + window.location.host);
   ws.onmessage = value => {
@@ -186,13 +193,13 @@ function login() {
         recv(x);
         break;
       case 'connect':
-        mkalert(false, 'connected: ', x);
+        mkalert(false, 'connected: ', x[0]);
         userlist.push(x);
         updateMenu();
         break;
       case 'disconnect':
-        mkalert(true, 'disconnected: ', x);
-        userlist.splice(userlist.indexOf(x), 1);
+        mkalert(true, 'disconnected: ', x[0]);
+        userlist.splice(userlist.findIndex(z=>z[0]==x[0]), 1);
         updateMenu();
         break;
       case 'users':
@@ -200,7 +207,7 @@ function login() {
         updateMenu();
         break;
       case 'roommsg':
-        x.map(m => mkmsg(m.user, m.text, m.id, m.date));
+        x.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag));
         break;
       case 'updateid':
         $$('[data-id="' + x.tmpid + '"]').forEach(y => y.dataset.id = x.newid)
@@ -211,6 +218,7 @@ function login() {
     ws.send(JSON.stringify({
       li: {
         username: un,
+        password: pw,
         room,
       }
     }))
@@ -228,7 +236,7 @@ function login() {
 setInterval(() => {
   if (ws && ws.readyState == ws.OPEN)
     ws.send(JSON.stringify({ ping: '' }))
-}, 10e3);
+}, 60e3);
 
 var ping;
 fetch('ping.mp3').then(x => x.blob()).then(x => ping = URL.createObjectURL(x));
