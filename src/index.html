@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <link rel="stylesheet" href="style.css">
@@ -9,8 +9,10 @@
   <script src="net.js" defer></script>
   <script src="main.js" defer></script>
 
+  <meta name="viewport" content="width=device-width">
+  <meta name="description" content="an IRC-like chat site made by geodebreaker">
   <meta property="og:title" content="gooberchat">
-  <meta property="og:description" content="IRC made by geodebreaker">
+  <meta property="og:description" content="an IRC-like chat site made by geodebreaker">
   <meta property="og:image" content="https://evrtdg.com/goober.jpg">
   <meta property="og:type" content="website">
   <meta property="og:image:type" content="image/jpeg">
@@ -22,11 +24,11 @@
 <body>
   <div id="undisplay"></div>
   <div id="roomdisplay"></div>
-  <button id="leave"></button>
-  <button id="openmenu"></button>
+  <button id="leave" aria-label="leave"></button>
+  <button id="openmenu" aria-label="open menu"></button>
   <div id="chat"></div>
   <input id="msg" placeholder="Type message here..." name="dont autofill!!" autocomplete="off">
-  <button id="send"></button>
+  <button id="send" aria-label="send"></button>
   <div id="menu"></div>
   <div id="login" popover="manual">
     <div>
@@ -36,7 +38,7 @@
         <input id="password" type="password" placeholder="password" autocomplete="current-password"><br><br>
         <span>room:</span><br>
         <input id="room" placeholder="leave blank for main" autocomplete="off"><br>
-        <input id="libtn" type="button" value="login"><br>
+        <input id="libtn" type="button" value="login" aria-label="log in button"><br>
         <span id="lilog"></span>
       </form>
     </div>
