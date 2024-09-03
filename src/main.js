@@ -21,11 +21,12 @@ document.addEventListener('click', e => {
   if (!(e.target == $('#rclick') || $('#rclick').contains(e.target)))
     $('#rclick').hidePopover();
 });
-document.onvisibilitychange = () => { notif = 0; updateTitle() };
+window.onfocus = () => { notif = 0; updateTitle() };
 $('#username').onkeypress = x => {
-  if (x.key == 'Enter') $('#room').focus();
+  if (x.key == 'Enter') $('#password').focus();
   $('#username').style.color = colorhash($('#username').value + (x.key.length == 1 ? x.key : ''))
 };
+$('#password').onkeypress = x => { if (x.key == 'Enter') $('#room').focus() };
 $('#msg').onkeypress = x => { if (x.key == 'Enter') $('#send').click() };
 $('#room').onkeypress = x => { if (x.key == 'Enter') $('#libtn').click() };
 $('#send').onclick = x => send($('#msg').value);
@@ -49,6 +50,10 @@ $('#openmenu').onclick = x => {
 
 $('#login').showPopover();
 
+function ontab() {
+  return document.visibilityState === 'visible' && document.hasFocus();
+};
+
 function send(value) {
   if (value != '') {
     var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
@@ -61,15 +66,9 @@ function send(value) {
 function recv(value) {
   mkmsg(value.from, value.data, value.id, value.date, value.tag);
 
-  if (document.visibilityState != 'visible') {
-    notif++;
-    updateTitle()
-  }
-
   x = new Audio(ping);
-  x.volume = document.visibilityState == 'visible' ? 1 : 0.5;
-  x.oncanplay = () =>
-    x.play();
+  x.volume = ontab() ? 1 : 0.5;
+  x.play();
 }
 
 function mkmsg(from, data, id, date, tag) {
@@ -91,6 +90,11 @@ function mkmsg(from, data, id, date, tag) {
 
   $('#chat').innerHTML += u.outerHTML + m.outerHTML + '<br>';
   updateChat();
+
+  if (!ontab()) {
+    notif++;
+    updateTitle()
+  }
 }
 
 function mkalert(type, data, un) {
@@ -103,6 +107,11 @@ function mkalert(type, data, un) {
   u.style.color = colorhash(un);
   $('#chat').innerHTML += m.outerHTML + u.outerHTML + '<br>';
   updateChat();
+
+  if (!ontab()) {
+    notif++;
+    updateTitle()
+  }
 }
 
 function updateChat() {
@@ -200,7 +209,7 @@ function login() {
           $('#undisplay').style.color = colorhash(un);
           $('#roomdisplay').innerText = room;
           loggedin = true;
-          $('title').innerText = 'gooberchat - ' + room;
+          updateTitle()
         } else {
           $('#lilog').innerText = 'failed to sign in: ' + x;
         }
@@ -226,7 +235,10 @@ function login() {
         x.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag));
         break;
       case 'updateid':
-        $$('[data-id="' + x.tmpid + '"]').forEach(y => y.dataset.id = x.newid)
+        $$(`[data-id="${x.tmpid}"]`).forEach(y => y.dataset.id = x.newid)
+        break;
+      case 'remmsg':
+        $$(`[data-id="${x}"]`).forEach(y => y.remove());
         break;
     }
   };
