@@ -49,7 +49,8 @@ function getRoomData(room) {
       console.log(`Got room data for room ${room}`)
       y(
         (await Promise.all(results
-          .map(async x => ({ date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id, tag: await getUserTag(x.user) }))
+          .map(async x => (
+            { date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id, tag: await getUserTag(x.user) }))
         )).sort((a, b) => a.date - b.date)
       );
     });
@@ -179,6 +180,12 @@ const svr = http.createServer((req, res) => {
   }
 });
 
+function makeDmRoom(room, un){
+  var r = room.replace('@', '').split(',');
+  r.push(un);
+  return '@' + r.filter((x, i, a)=>a.indexOf(x)==i).sort().join(',');
+}
+
 var wss = new ws.Server({ server: svr });
 var clients = {};
 
@@ -234,6 +241,8 @@ wss.on('connection', (ws) => {
         ws.uid = id;
         ws.un = x.username;
         ws.tag = await getUserTag(ws.uid);
+        if(x.room.startsWith('@'))
+          ws.room = makeDmRoom(x.room, ws.un);
         ws.room = x.room;
         ws.li = true;
         emit('connect', [ws.un, ws.tag], ws.room, ws.un);
@@ -247,6 +256,9 @@ wss.on('connection', (ws) => {
         break;
       case 'msg':
 
+        if(x.value.length > 512)
+          return send(ws, 'remmsg', x.tmpid);
+        
         putMsg(ws.uid, ws.room, x.value).then(id => {
           emit('msg',
             { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },

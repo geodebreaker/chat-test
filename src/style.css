@@ -147,7 +147,21 @@ body > *:not(#login, #menu, #rclick) {
   top: 0;
   left: 0;
   margin: 0px;
+  border: 4px solid #888;
+  background: #222;
+  color: white;
+  padding: 4px;
 }
+
+#rclick hr {
+  border: 2px solid #888;
+  margin: 2px -4px;
+}
+
+#rc-copy {
+  cursor: pointer;
+}
+
 /* 
 .tag {
   display: inline-block;
