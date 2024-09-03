@@ -181,9 +181,9 @@ const svr = http.createServer((req, res) => {
 });
 
 function makeDmRoom(room, un){
-  var r = room.replace('@', '').split(',');
+  var r = room.replace('!', '').split(',');
   r.push(un);
-  return '@' + r.filter((x, i, a)=>a.indexOf(x)==i).sort().join(',');
+  return '!' + r.filter((x, i, a)=>a.indexOf(x)==i).sort().join(',');
 }
 
 var wss = new ws.Server({ server: svr });

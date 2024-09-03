@@ -14,7 +14,8 @@ body {
   color: white;
 }
 
-input, button {
+input,
+button {
   all: unset;
   background: #333;
 }
@@ -30,7 +31,7 @@ button {
   height: 50px;
 }
 
-body > *:not(#login, #menu, #rclick) {
+body>*:not(#login, #menu, #rclick) {
   border: 1px solid #888;
   display: inline-block;
   box-sizing: border-box;
@@ -123,11 +124,13 @@ body > *:not(#login, #menu, #rclick) {
   cursor: pointer;
 }
 
-.usertag, #undisplay {
+.usertag,
+#undisplay {
   font-weight: bold;
 }
 
-#lilog, .bad {
+#lilog,
+.bad {
   color: red;
 }
 
@@ -160,6 +163,19 @@ body > *:not(#login, #menu, #rclick) {
 
 #rc-copy {
   cursor: pointer;
+  user-select: none;
+}
+
+a {
+  color: #48e;
+}
+
+a:hover {
+  color: #8df;
+}
+
+a:visited {
+  color: #a4f;
 }
 
 /* 
