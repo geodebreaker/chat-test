@@ -6,7 +6,7 @@ function fmtDate(ms) {
   var x = new Date(parseInt(ms));
   var y = x.getHours() % 12;
   var z = x.getMinutes().toString();
-  return `${x.getMonth()}/${x.getDay()}/${x.getFullYear()} ` +
+  return `${x.getMonth() + 1}/${x.getDay() + 1}/${x.getFullYear()} ` +
     `${y == 0 ? 12 : y}:${z.length == 1 ? '0' + z : z} ${x.getHours() > 11 ? 'PM' : 'AM'}`;
 }
 
@@ -83,7 +83,7 @@ function styles(x, y) {
     case 'ls':
       return ('<a href="?" onclick="clickLink(event, ?)" target="?">?</a>'
         .replace('?', y[0].replace(/^(#)?(?:http(s)?:\/\/)?/, (x, y, z) => y ? x : 'http' + (z ?? '') + '://'))
-        .replace('?', y[0].startsWith('#')?"'"+y[0]+"'":this.href)
+        .replace('?', y[0].startsWith('#') ? "'" + y[0] + "'" : this.href)
         .replace('?', x == 'l' ? '_blank' : '')
         .replace('?', y[1] ?? y[0])
       );
@@ -93,5 +93,5 @@ function styles(x, y) {
 }
 
 function copyText(x) {
-
+  navigator.clipboard.writeText(x).then(x => alert('copied to clipboard')).catch(x => { })
 }
