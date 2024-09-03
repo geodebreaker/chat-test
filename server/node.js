@@ -221,21 +221,21 @@ wss.on('connection', (ws) => {
     switch (y) {
       case 'li':
         if (x.username.length < 2 || x.username.length > 12) {
-          return send(ws, 'li', 'bad username');
+          return send(ws, 'li', [false, 'bad username']);
         }
 
         if (clients[x.username]) {
-          return send(ws, 'li', 'already signed in');
+          return send(ws, 'li', [false, 'already signed in']);
         }
 
         var id = await fromUsername(x.username);
 
         if (!id) {
-          return send(ws, 'li', 'user does not exist');
+          return send(ws, 'li', [false, 'user does not exist']);
         }
 
         if (!await checkPw(id, x.password)) {
-          return send(ws, 'li', 'bad password');
+          return send(ws, 'li', [false, 'bad password']);
         }
 
         ws.uid = id;
@@ -246,17 +246,16 @@ wss.on('connection', (ws) => {
         ws.room = x.room;
         ws.li = true;
         emit('connect', [ws.un, ws.tag], ws.room, ws.un);
-        send(ws, 'li', '');
         console.log(`${ws.un} logged into room ${ws.room}`);
         clients[ws.un] = ws;
         getRoomData(ws.room).then(x =>
-          send(ws, 'roommsg', x)
+          send(ws, 'li', [true, ws.tag, x])
         );
 
         break;
       case 'msg':
 
-        if(x.value.length > 512)
+        if(x.value.length > 64)
           return send(ws, 'remmsg', x.tmpid);
         
         putMsg(ws.uid, ws.room, x.value).then(id => {
