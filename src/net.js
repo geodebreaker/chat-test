@@ -15,15 +15,17 @@ function login() {
     console.log(y + ':', x);
     switch (y) {
       case 'li':
-        if (x == "") {
+        if (x[0]) {
           $('#login').hidePopover();
           $('#undisplay').innerText = un;
+          $('#undisplay').innerHTML += `<span class="tag _${x[1]}"></span>`;
           $('#undisplay').style.color = colorhash(un);
           $('#roomdisplay').innerText = room;
           loggedin = true;
-          updateTitle()
+          updateTitle();
+          x[2].map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag));
         } else {
-          $('#lilog').innerText = 'failed to sign in: ' + x;
+          $('#lilog').innerText = 'failed to sign in: ' + x[1];
         }
         break;
       case 'msg':
@@ -42,9 +44,6 @@ function login() {
       case 'users':
         userlist = x;
         updateMenu();
-        break;
-      case 'roommsg':
-        x.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag));
         break;
       case 'updateid':
         $$(`[data-id="${x.tmpid}"]`).forEach(y => y.dataset.id = x.newid)
