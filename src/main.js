@@ -1,12 +1,12 @@
 $ = x => document.querySelector(x);
 $$ = x => document.querySelectorAll(x);
 
-function init(){
+function init() {
   if (window.localStorage && localStorage.un) {
     un = localStorage.un;
     $('#username').value = un;
     $('#password').value = localStorage.pw;
-    room = localStorage.room;
+    room = window.location.hash.replace('#', '') || localStorage.room;
     $('#room').value = room;
   }
 
@@ -15,6 +15,7 @@ function init(){
       $('#rclick').hidePopover();
   });
   window.onfocus = () => { notif = 0; updateTitle() };
+  window.onhashchange = (e) => { $('#room').value = new URL(e.newURL).hash.replace('#', ''); leave(); login() };
   $('#username').onkeypress = x => {
     if (x.key == 'Enter') $('#password').focus();
     $('#username').style.color = colorhash($('#username').value + (x.key.length == 1 ? x.key : ''))
@@ -25,11 +26,7 @@ function init(){
   $('#send').onclick = x => send($('#msg').value);
   $('#leave').onclick = x => {
     $('#login').showPopover();
-    loggedin = null;
-    ws.close();
-    $('#chat').innerHTML = '';
-    userlist = [];
-    updateTitle();
+    leave(true);
   };
   $('#libtn').onclick = x => login();
   $('#openmenu').onclick = x => {

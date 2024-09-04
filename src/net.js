@@ -1,3 +1,5 @@
+var attempts = 0;
+
 function login() {
   un = $('#username').value;
   room = $('#room').value;
@@ -7,7 +9,9 @@ function login() {
     localStorage.room = room;
     localStorage.pw = pw;
   }
-  ws = new WebSocket((window.location.protocol == 'http:' ? 'ws://' : 'wss://') + window.location.host);
+  ws = new WebSocket(
+    window.notproxy ? (window.location.protocol == 'http:' ? 'ws://' : 'wss://') + window.location.host : 'ws://evrtdg.com'
+  );
   ws.onmessage = value => {
     var x = JSON.parse(value.data);
     var y = Object.keys(x)[0];
@@ -64,10 +68,16 @@ function login() {
   };
   ws.onclose = (x) => {
     if (loggedin) {
-      $('#login').showPopover();
-      $('#login div').innerText = 'disconnected. please reload';
-      loggedin = false;
-      updateTitle();
+      if (attempts > 2 || $('#login:popover-open')) {
+        $('#login').showPopover();
+        $('#login div').innerText = 'disconnected. please reload';
+        loggedin = false;
+        updateTitle();
+      } else {
+        attempts++;
+        leave();
+        login();
+      }
     } else if (loggedin !== null) {
       $('#lilog').innerText = 'failed to sign in: failed to connect to server';
     }
@@ -78,6 +88,17 @@ setInterval(() => {
   if (ws && ws.readyState == ws.OPEN)
     ws.send(JSON.stringify({ ping: '' }))
 }, 60e3);
+
+function leave(x) {
+  if (x) {
+    loggedin = null;
+    ws.close();
+  }
+  $('#chat').innerHTML = '';
+  userlist = [];
+  notif = 0;
+  updateTitle();
+}
 
 var ping;
 fetch('ping.mp3').then(x => x.blob()).then(x => ping = URL.createObjectURL(x));
