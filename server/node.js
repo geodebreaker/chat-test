@@ -220,15 +220,17 @@ wss.on('connection', (ws) => {
 
     switch (y) {
       case 'li':
-        if (x.username.length < 2 || x.username.length > 12) {
+        var un = x.username.toLowerCase();
+
+        if (un.length < 2 || un.length > 12) {
           return send(ws, 'li', [false, 'bad username']);
         }
 
-        if (clients[x.username]) {
+        if (clients[un]) {
           return send(ws, 'li', [false, 'already signed in']);
         }
 
-        var id = await fromUsername(x.username);
+        var id = await fromUsername(un);
 
         if (!id) {
           return send(ws, 'li', [false, 'user does not exist']);
@@ -239,11 +241,12 @@ wss.on('connection', (ws) => {
         }
 
         ws.uid = id;
-        ws.un = x.username;
+        ws.un = un;
         ws.tag = await getUserTag(ws.uid);
-        if(x.room.startsWith('@'))
+        if(x.room.startsWith('!'))
           ws.room = makeDmRoom(x.room, ws.un);
-        ws.room = x.room;
+        else
+          ws.room = x.room;
         ws.li = true;
         emit('connect', [ws.un, ws.tag], ws.room, ws.un);
         console.log(`${ws.un} logged into room ${ws.room}`);
@@ -278,7 +281,9 @@ wss.on('connection', (ws) => {
 
         break;
       case 'ping':
+
         send(ws, 'ping', '');
+
         break;
     }
   });
