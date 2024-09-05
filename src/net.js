@@ -11,7 +11,7 @@ function login() {
     localStorage.pw = pw;
   }
   ws = new WebSocket(
-    window.notproxy ? (window.location.protocol == 'http:' ? 'ws://' : 'wss://') + window.location.host : 'ws://evrtdg.com'
+    (window.location.protocol == 'https:' ? 'wss://' : 'ws://') +  window.notproxy ? window.location.host : 'ws://evrtdg.com'
   );
   ws.onmessage = value => {
     var x = JSON.parse(value.data);
