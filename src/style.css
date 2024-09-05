@@ -161,7 +161,7 @@ body>*:not(#login, #menu, #rclick) {
   margin: 2px -4px;
 }
 
-#rc-copy {
+.btn {
   cursor: pointer;
   user-select: none;
 }
@@ -176,6 +176,11 @@ a:hover {
 
 a:visited {
   color: #a4f;
+}
+
+.tiny {
+  font-size: 15px;
+  font-weight: light;
 }
 
 /* 

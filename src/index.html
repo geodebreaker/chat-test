@@ -40,14 +40,23 @@
         <span>room:</span><br>
         <input id="room" placeholder="leave blank for main" autocomplete="off"><br>
         <input id="libtn" type="button" value="login" aria-label="log in button"><br>
-        <span id="lilog"></span>
+        <span id="lilog"></span><br>
+        <span class="tiny">
+          (blank) - main<br>
+          help - help channel<br>
+          &lt;any> - room<br>
+          !&lt;username> - dms<br>
+          !&lt;username>,&lt;username>,&lt;username> - group dm<br>
+        </span>
       </form>
     </div>
   </div>
   <div id="rclick" popover="manual">
     <div id="rc-date"></div>
     <hr>
-    <div id="rc-copy">copy text</div>
+    <div id="rc-copy" class="btn">copy text</div>
+    <hr>
+    <div id="rc-dms" class="btn">open dms</div>
   </div>
 </body>
 
