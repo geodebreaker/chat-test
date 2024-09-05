@@ -3,6 +3,7 @@ var attempts = 0;
 function login() {
   un = $('#username').value;
   room = $('#room').value;
+  window.location.hash = room;
   var pw = $('#password').value;
   if (window.localStorage) {
     localStorage.un = un;
