@@ -183,6 +183,17 @@ a:visited {
   font-weight: light;
 }
 
+.img {
+  width: 15px;
+  height: 15px;
+  border: 2px dotted #888;
+}
+
+.img:active {
+  width: unset;
+  height: unset;
+}
+
 /* 
 .tag {
   display: inline-block;
