@@ -90,6 +90,12 @@ function styles(x, y) {
         .replace('?', x == 'l' ? '_blank' : '')
         .replace('?', y[1] ?? y[0])
       );
+    case 'p':
+      return `<img href="${y[0]}" class="img">`;
+      break;
+    case 'b':
+      return `<b>${y.join(',')}</b>`;
+      break;
     case '':
       break;
   }
