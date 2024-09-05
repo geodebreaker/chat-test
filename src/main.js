@@ -15,10 +15,12 @@ function init() {
       $('#rclick').hidePopover();
   });
   window.onfocus = () => { notif = 0; updateTitle() };
-  window.onhashchange = (e) => { 
-    $('#room').value = new URL(e.newURL).hash.replace('#', ''); 
-    leave(true); 
-    login();
+  window.onhashchange = (e) => {
+    var old = $('#room').value;
+    if (old != ($('#room').value = new URL(e.newURL).hash.replace('#', ''))) {
+      leave(true);
+      login();
+    }
   };
   $('#username').onkeypress = x => {
     if (x.key == 'Enter') $('#password').focus();
