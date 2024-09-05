@@ -52,6 +52,9 @@ function rclick(event) {
   $('#rclick').dataset.id = this.dataset.id;
   $('#rc-date').innerText = fmtDate(this.dataset.date);
   $('#rc-copy').onclick = () => { copyText(this.dataset.text) };
+  $('#rc-dms').onclick = () => {
+    window.location.hash = '!' + this.dataset.user;
+  };
   $('#rclick').showPopover();
 }
 

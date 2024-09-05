@@ -15,7 +15,11 @@ function init() {
       $('#rclick').hidePopover();
   });
   window.onfocus = () => { notif = 0; updateTitle() };
-  window.onhashchange = (e) => { $('#room').value = new URL(e.newURL).hash.replace('#', ''); leave(); login() };
+  window.onhashchange = (e) => { 
+    $('#room').value = new URL(e.newURL).hash.replace('#', ''); 
+    leave(true); 
+    login();
+  };
   $('#username').onkeypress = x => {
     if (x.key == 'Enter') $('#password').focus();
     $('#username').style.color = colorhash($('#username').value + (x.key.length == 1 ? x.key : ''))
@@ -81,6 +85,7 @@ function mkmsg(from, data, id, date, tag) {
   c.dataset.id = id;
   c.dataset.date = date;
   c.dataset.text = data;
+  c.dataset.user = from;
   c.innerHTML = u.outerHTML + m.outerHTML + '<br>';
 
   $('#chat').appendChild(c);
