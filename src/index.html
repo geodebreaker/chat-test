@@ -37,16 +37,13 @@
       <form>
         <input id="username" placeholder="username" autocomplete="off"><br>
         <input id="password" type="password" placeholder="password" autocomplete="current-password"><br><br>
-        <span>room:</span><br>
-        <input id="room" placeholder="leave blank for main" autocomplete="off"><br>
+        <input id="room" placeholder="room" autocomplete="off"><br>
         <input id="libtn" type="button" value="login" aria-label="log in button"><br>
         <span id="lilog"></span><br>
         <span class="tiny">
-          (blank) - main<br>
+          (blank) - main channel<br>
           help - help channel<br>
-          &lt;any> - room<br>
-          !&lt;username> - dms<br>
-          !&lt;username>,&lt;username>,&lt;username> - group dm<br>
+          !&lt;username> - dms (use commas for group dms)<br>
         </span>
       </form>
     </div>
@@ -57,6 +54,10 @@
     <div id="rc-copy" class="btn">copy text</div>
     <hr>
     <div id="rc-dms" class="btn">open dms</div>
+    <hr>
+    <div id="rc-del" class="btn mod">delete message</div>
+    <div id="rc-ban" class="btn mod">ban user</div>
+    <div id="rc-to" class="btn mod">timeout user</div>
   </div>
 </body>
 

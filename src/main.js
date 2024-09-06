@@ -50,6 +50,7 @@ function init() {
 var ws;
 var un;
 var room;
+var tag = 0;
 var notif = 0;
 var loggedin = false;
 var menuopen = false;
@@ -59,7 +60,7 @@ function send(value) {
   if (value != '') {
     var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
     ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
-    mkmsg(un, value, id, Date.now());
+    mkmsg(un, value, id, Date.now(), tag);
     $('#msg').value = '';
   }
 }
@@ -72,10 +73,11 @@ function recv(value) {
   x.play();
 }
 
-function mkmsg(from, data, id, date, tag) {
+function mkmsg(from, data, id, date, tag, x) {
   var u = document.createElement('span');
-  u.innerText = from;
-  u.innerHTML += `<span class="tag _${tag}"></span>` + ': ';
+  var y = document.createElement('span');
+  y.innerText = from;
+  u.innerHTML = genTag(tag) + y.innerHTML + ': ';
   u.className = 'usertag';
   u.style.color = colorhash(from);
 
@@ -93,7 +95,7 @@ function mkmsg(from, data, id, date, tag) {
   $('#chat').appendChild(c);
   updateChat();
 
-  if (!ontab()) {
+  if (!ontab() && !x) {
     notif++;
     updateTitle()
   }
@@ -105,7 +107,9 @@ function mkalert(type, data, un) {
   m.className = type ? 'bad' : 'good';
 
   var u = document.createElement('span');
-  u.innerText = un;
+  var y = document.createElement('span');
+  y.innerText = un;
+  u.innerHTML = y.innerHTML + ': ';
   u.className = 'usertag';
   u.style.color = colorhash(un);
 
@@ -129,8 +133,9 @@ function updateMenu() {
   $('#menu').innerHTML = '';
   for (var un of userlist) {
     var u = document.createElement('span');
-    u.innerText = un[0];
-    u.innerHTML += `<span class="tag _${un[2]}"></span>`;
+    var y = document.createElement('span');
+    y.innerText = un[0];
+    u.innerHTML = genTag(un[2]) + y.innerHTML;
     u.className = 'usertag';
     u.style.color = colorhash(un[0]);
     $('#menu').innerHTML += u.outerHTML + '<br>';
