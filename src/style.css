@@ -195,20 +195,37 @@ a:visited {
 .img:active {
   width: unset;
   height: unset;
+  position: absolute;
+  top: calc(50vh - 150px);
+  left: calc(50vw - 150px);
 }
 
-/* 
+
 .tag {
+  border: 1px solid black;
+  font-size: 13px;
+  border-radius: 20px;
+  margin-right: 3px;
+  opacity: 0.5;
+  font-weight: lighter;
+  padding: 1px;
+  line-height: 14px;
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  height: 11px;
   vertical-align: middle;
-  margin-left: 8px;
-  background-repeat: no-repeat;
 }
 
-.tag._0 { background-image: url('tag-0.svg'); }
-.tag._1 { background-image: url('tag-1.svg'); }
-.tag._2 { background-image: url('tag-2.svg'); }
-.tag._3 { background-image: url('tag-3.svg'); }
-.tag._4 { background-image: url('tag-4.svg'); } */
+.tag._1 { 
+  color: #0f0;
+  border-color: #0f0;
+}
+
+.tag._2 { 
+  color: #00f;
+  border-color: #00f;
+}
+
+.tag._3 { 
+  color: #aa0;
+  border-color: #aa0;
+}

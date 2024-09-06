@@ -44,17 +44,33 @@ function colorhash(x) {
 }
 
 function rclick(event) {
-  if (event.target.tagName == 'A' || event.target.tagName == 'IMG')
+  if (event.target.tagName == 'A')
     return;
   event.preventDefault();
   $('#rclick').style.left = event.clientX + 'px';
-  $('#rclick').style.top = event.clientY + 'px';
+  $('#rclick').style.top = (event.clientY + 200 > innerHeight ? innerHeight - 200 : event.clientY) + 'px';
   $('#rclick').dataset.id = this.dataset.id;
   $('#rc-date').innerText = fmtDate(this.dataset.date);
   $('#rc-copy').onclick = () => { copyText(this.dataset.text) };
   $('#rc-dms').onclick = () => {
     window.location.hash = '!' + this.dataset.user;
   };
+  if (tag <= 1)
+    $$('#rclick .mod').forEach(x => x.style.display = 'none');
+  $('#rc-to').onclick = () => {
+    var t = parseFloat(prompt('Time in minutes for timeout'));
+    if (!t) {
+      alert('invalid time');
+    } else {
+      ws.send(JSON.stringify({ mod: ['to', this.dataset.user, t * 60e3] }))
+    }
+  };
+  $('#rc-ban').onclick = () => {
+    ws.send(JSON.stringify({ mod: ['ban', this.dataset.user] }));
+  }
+  $('#rc-del').onclick = () => {
+    ws.send(JSON.stringify({ mod: ['del', this.dataset.id] }));
+  }
   $('#rclick').showPopover();
 }
 
@@ -65,6 +81,7 @@ function clickLink(ev, t) {
 
 function styleMsg(x) {
   var y = x
+    .replace(/@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
     .replace(/!/g, '!!')
     .replace(/[<&"]/g, x => '!' + x)
     .replace(
@@ -84,23 +101,37 @@ function styles(x, y) {
   switch (x) {
     case 'l':
     case 'ls':
-      return ('<a href="?" onclick="clickLink(event, ?)" target="?">?</a>'
-        .replace('?', y[0].replace(/^(#)?(?:http(s)?:\/\/)?/, (x, y, z) => y ? x : 'http' + (z ?? '') + '://'))
-        .replace('?', y[0].startsWith('#') ? "'" + y[0] + "'" : this.href)
-        .replace('?', x == 'l' ? '_blank' : '')
-        .replace('?', y[1] ?? y[0])
-      );
+      return (`<a onclick="clickLink(event, ${y[0].startsWith('#') ? "'" + y[0] + "'" : this.href
+        })" target="${x == 'l' ? '_blank' : ''
+        }" href="${y[0].replace(/^(#)?(?:http(s)?:\/\/)?/, (x, y, z) => y ? x : 'http' + (z ?? '') + '://')
+        }">${y[1] ?? y[0]
+        }</a>`);
     case 'p':
-      return `<img src="${y[0]}" class="img">`;
-      break;
+      return `<img src="${y[0].replace(/^(?:http(s)?:\/\/)?/, (x, z) => 'http' + (z ?? '') + '://')}" class="img">`;
     case 'b':
       return `<b>${y.join(',')}</b>`;
-      break;
-    case '':
-      break;
+    case 'i':
+      return `<i>${y.join(',')}</i>`;
+    case 'c':
+      return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
   }
 }
 
 function copyText(x) {
   navigator.clipboard.writeText(x).then(x => alert('copied to clipboard')).catch(x => { })
+}
+
+// window.onbeforeunload = e => {
+//   e.preventDefault();
+//   e.returnValue = '';
+// }
+
+function keepAlive() {
+  requestAnimationFrame(keepAlive);
+}
+
+keepAlive();
+
+function genTag(n) {
+  return n > 0 ? `<span class="tag _${n}">${'VMA'[n-1]}</span>` : ''
 }

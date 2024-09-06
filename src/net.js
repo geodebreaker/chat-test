@@ -13,22 +13,26 @@ function login() {
   ws = new WebSocket(
     (window.location.protocol == 'https:' ? 'wss://' : 'ws://') + (window.notproxy ? window.location.host : 'ws://evrtdg.com')
   );
-  ws.onmessage = value => {
+  ws.onmessage = async value => {
     var x = JSON.parse(value.data);
     var y = Object.keys(x)[0];
     x = x[y];
-    console.log(y + ':', x);
+    if (y != 'roommsg')
+      console.log(y + ':', x);
     switch (y) {
       case 'li':
         if (x[0]) {
+          attempts = 0;
           $('#login').hidePopover();
-          $('#undisplay').innerText = un;
-          $('#undisplay').innerHTML += `<span class="tag _${x[1]}"></span>`;
+          var y = document.createElement('span');
+          y.innerText = un;
+          $('#undisplay').innerHTML = genTag(x[1]) + y.innerHTML;
           $('#undisplay').style.color = colorhash(un);
           $('#roomdisplay').innerText = room;
+          tag = x[1];
           loggedin = true;
           updateTitle();
-          x[2].map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag));
+          JSON.parse(await decompress(x[2])).map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
         } else {
           $('#lilog').innerText = 'failed to sign in: ' + x[1];
         }
@@ -56,6 +60,10 @@ function login() {
       case 'remmsg':
         $$(`[data-id="${x}"]`).forEach(y => y.remove());
         break;
+      case 'roommsg':
+        $('#chat').innerHTML = '';
+        JSON.parse(await decompress(x)).map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
+        break;
     }
   };
   ws.onopen = () => {
@@ -69,7 +77,7 @@ function login() {
   };
   ws.onclose = (x) => {
     if (loggedin) {
-      if (attempts > 2 || $('#login:popover-open')) {
+      if (attempts > 4 || $('#login:popover-open')) {
         $('#login').showPopover();
         $('#login div').innerText = 'disconnected. please reload';
         loggedin = false;
@@ -88,7 +96,7 @@ function login() {
 setInterval(() => {
   if (ws && ws.readyState == ws.OPEN)
     ws.send(JSON.stringify({ ping: '' }))
-}, 60e3);
+}, 30e3);
 
 function leave(x) {
   if (x) {
@@ -103,3 +111,39 @@ function leave(x) {
 
 var ping;
 fetch('ping.mp3').then(x => x.blob()).then(x => ping = URL.createObjectURL(x));
+
+async function compress(input) {
+  const encoder = new TextEncoder();
+  const compressedStream = new CompressionStream('gzip');
+  const writer = compressedStream.writable.getWriter();
+  writer.write(encoder.encode(input));
+  writer.close();
+  const reader = compressedStream.readable.getReader();
+  let compressedChunks = [];
+  let done = false;
+  while (!done) {
+    const { value, done: streamDone } = await reader.read();
+    if (value) compressedChunks.push(value);
+    done = streamDone;
+  }
+  const compressed = new Uint8Array(compressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
+  return String.fromCharCode(...compressed);
+}
+
+async function decompress(compressedStr) {
+  const compressed = Uint8Array.from(compressedStr, c => c.charCodeAt(0));
+  const decompressedStream = new DecompressionStream('gzip');
+  const writer = decompressedStream.writable.getWriter();
+  writer.write(compressed);
+  writer.close();
+  const reader = decompressedStream.readable.getReader();
+  let decompressedChunks = [];
+  let done = false;
+  while (!done) {
+    const { value, done: streamDone } = await reader.read();
+    if (value) decompressedChunks.push(value);
+    done = streamDone;
+  }
+  const decompressed = new Uint8Array(decompressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
+  return new TextDecoder().decode(decompressed);
+}
