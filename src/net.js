@@ -58,7 +58,7 @@ function login() {
         $$(`[data-id="${x.tmpid}"]`).forEach(y => y.dataset.id = x.newid)
         break;
       case 'remmsg':
-        $$(`[data-id="${x}"]`).forEach(y => y.remove());
+        $$(`[data-id="${x}"]:not(#rclick)`).forEach(y => y.remove());
         break;
       case 'roommsg':
         $('#chat').innerHTML = '';
