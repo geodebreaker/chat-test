@@ -194,15 +194,15 @@ const svr = http.createServer((req, res) => {
   }
 });
 
-setInterval(() => {
-  var r = {};
-  wss.clients.forEach(async c => {
-    if (c.room != null && !r[c.room]) {
-      r[c.room] = true;
-      emit('roommsg', await getRoomData(c.room), c.room)
-    }
-  });
-}, 5 * 60e3)
+// setInterval(() => {
+//   var r = {};
+//   wss.clients.forEach(async c => {
+//     if (c.room != null && !r[c.room]) {
+//       r[c.room] = true;
+//       emit('roommsg', await getRoomData(c.room), c.room)
+//     }
+//   });
+// }, 15 * 60e3)
 
 function makeDmRoom(room, un) {
   var r = room.replace('!', '').split(',');
@@ -296,29 +296,30 @@ wss.on('connection', (ws) => {
         break;
       case 'msg':
 
+        var spam = ws.tag == 0 ? -10 : -25;
         var now = Date.now();
-        if(ws.tag <= 1){
+        if (ws.tag <= 2) {
           ws.spamt.push(now);
           ws.spamm.push(x.value);
           if (ws.spamt.length > 60) {
             ws.spamt.shift();
             ws.spamm.shift();
           }
-          var spam = Math.floor(5 - x.value.length) - 2;
+          spam = Math.floor(5 - x.value.length) - 2;
           spam += ws.spamt.map(s => s >= now - 20e3).reduce((a, b) => a + b);
           spam += ws.spamm.map(s => s == x.value).reduce((a, b) => a + b);
         }
 
-        if (spam > 8) userdata[ws.un].timeout = now + 30e3;
+        if (spam > 5) userdata[ws.un].timeout = now + 30e3;
         if (
           x.value.length > 128 ||
           userdata[ws.un].ban ||
           userdata[ws.un].timeout > now ||
-          spam > 5
+          spam > 0
         ) return send(ws, 'remmsg', x.tmpid);
 
         putMsg(ws.uid, ws.room, x.value).then(id => {
-          (x.value.match(/(?<=@)\S{2,12}/g)||[]).map(x =>
+          (x.value.match(/(?<=@)\S{2,12}/g) || []).map(x =>
             (userdata[x] ?? { notif: [] }).notif.push([id, ws.room, ws.un]));
           emit('msg',
             { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },
@@ -349,14 +350,20 @@ wss.on('connection', (ws) => {
           switch (x[0]) {
             case 'ban':
 
+              if (userdata[x[1]] && userdata[x[1]].tag > 1)
+                return;
               userdata[x[1]] = userdata[x[1]] || { timeout: 0, ban: false, notif: [] };
               userdata[x[1]].ban = !userdata[x[1]].ban;
+              emit('ban', x[1], ws.room);
 
               break;
             case 'to':
 
+              if (userdata[x[1]] && userdata[x[1]].tag > 1)
+                return;
               userdata[x[1]] = userdata[x[1]] || { timeout: 0, ban: false, notif: [] };
               userdata[x[1]].timeout = Date.now() + x[2];
+              emit('to', [x[1], x[2]], ws.room);
 
               break;
             case 'del':

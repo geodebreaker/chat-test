@@ -57,6 +57,8 @@ function rclick(event) {
   };
   if (tag <= 1)
     $$('#rclick .mod').forEach(x => x.style.display = 'none');
+  else
+    $$('#rclick .mod').forEach(x => x.style.display = 'block');
   $('#rc-to').onclick = () => {
     var t = parseFloat(prompt('Time in minutes for timeout'));
     if (!t) {
@@ -103,11 +105,11 @@ function styles(x, y) {
     case 'ls':
       return (`<a onclick="clickLink(event, ${y[0].startsWith('#') ? "'" + y[0] + "'" : this.href
         })" target="${x == 'l' ? '_blank' : ''
-        }" href="${y[0].replace(/^(#)?(?:http(s)?:\/\/)?/, (x, y, z) => y ? x : 'http' + (z ?? '') + '://')
+        }" href="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')
         }">${y[1] ?? y[0]
         }</a>`);
     case 'p':
-      return `<img src="${y[0].replace(/^(?:http(s)?:\/\/)?/, (x, z) => 'http' + (z ?? '') + '://')}" class="img">`;
+      return `<img src="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')}" class="img">`;
     case 'b':
       return `<b>${y.join(',')}</b>`;
     case 'i':
@@ -132,6 +134,18 @@ function keepAlive() {
 
 keepAlive();
 
-function genTag(n) {
-  return n > 0 ? `<span class="tag _${n}">${'VMA'[n-1]}</span>` : ''
+function genTag(un, n, f) {
+  var u = document.createElement('span');
+  var y = document.createElement('span');
+  y.innerText = un;
+  u.innerHTML = (n > 0 ? `<span class="tag _${n}">${'VMA'[n - 1]}</span>` : '') + y.innerHTML + (f ? ': ' : '');
+  u.className = 'usertag';
+  u.style.color = n < 0 ? 'red' : colorhash(un);
+  return u;
+}
+
+function playPing() {
+  x = new Audio(ping);
+  x.volume = ontab() ? 1 : 0.5;
+  x.play();
 }

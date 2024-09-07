@@ -26,8 +26,7 @@ function login() {
           $('#login').hidePopover();
           var y = document.createElement('span');
           y.innerText = un;
-          $('#undisplay').innerHTML = genTag(x[1]) + y.innerHTML;
-          $('#undisplay').style.color = colorhash(un);
+          $('#undisplay').innerHTML = genTag(un, x[1]).outerHTML;
           $('#roomdisplay').innerText = room;
           tag = x[1];
           loggedin = true;
@@ -146,4 +145,5 @@ async function decompress(compressedStr) {
   }
   const decompressed = new Uint8Array(decompressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
   return new TextDecoder().decode(decompressed);
+  // return compressedStr
 }
