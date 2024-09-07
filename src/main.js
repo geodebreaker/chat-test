@@ -52,6 +52,7 @@ var un;
 var room;
 var tag = 0;
 var notif = 0;
+var lastping = 0;
 var loggedin = false;
 var menuopen = false;
 var userlist = [];
@@ -67,19 +68,11 @@ function send(value) {
 
 function recv(value) {
   mkmsg(value.from, value.data, value.id, value.date, value.tag);
-
-  x = new Audio(ping);
-  x.volume = ontab() ? 1 : 0.5;
-  x.play();
+  playPing();
 }
 
 function mkmsg(from, data, id, date, tag, x) {
-  var u = document.createElement('span');
-  var y = document.createElement('span');
-  y.innerText = from;
-  u.innerHTML = genTag(tag) + y.innerHTML + ': ';
-  u.className = 'usertag';
-  u.style.color = colorhash(from);
+  var u = genTag(from, tag, true);
 
   var m = document.createElement('span');
   m.innerHTML = styleMsg(data);
@@ -101,17 +94,12 @@ function mkmsg(from, data, id, date, tag, x) {
   }
 }
 
-function mkalert(type, data, un) {
+function mkalert(type, data, un, tag) {
   var m = document.createElement('span');
   m.innerText = data;
   m.className = type ? 'bad' : 'good';
 
-  var u = document.createElement('span');
-  var y = document.createElement('span');
-  y.innerText = un;
-  u.innerHTML = y.innerHTML + ': ';
-  u.className = 'usertag';
-  u.style.color = colorhash(un);
+  var u = genTag(un, tag);
 
   var c = document.createElement('span');
   c.innerHTML = m.outerHTML + u.outerHTML + '<br>';
@@ -119,6 +107,7 @@ function mkalert(type, data, un) {
   $('#chat').appendChild(c);
   updateChat();
 
+  playPing();
   if (!ontab()) {
     notif++;
     updateTitle()
@@ -132,12 +121,7 @@ function updateChat() {
 function updateMenu() {
   $('#menu').innerHTML = '';
   for (var un of userlist) {
-    var u = document.createElement('span');
-    var y = document.createElement('span');
-    y.innerText = un[0];
-    u.innerHTML = genTag(un[2]) + y.innerHTML;
-    u.className = 'usertag';
-    u.style.color = colorhash(un[0]);
+    var u = genTag(un[0], un[2]);
     $('#menu').innerHTML += u.outerHTML + '<br>';
   }
 }

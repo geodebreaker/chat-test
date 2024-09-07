@@ -70,7 +70,7 @@ body>*:not(#login, #menu, #rclick, .img) {
   grid-area: c;
   white-space: pre;
   overflow-y: scroll;
-  overflow-wrap: normal;
+  overflow-x: scroll;
 }
 
 #msg {
