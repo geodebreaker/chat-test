@@ -83,7 +83,7 @@ function clickLink(ev, t) {
 
 function styleMsg(x) {
   var y = x
-    .replace(/@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
+    .replace(/(?<= )@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
     .replace(/!/g, '!!')
     .replace(/[<&"]/g, x => '!' + x)
     .replace(
