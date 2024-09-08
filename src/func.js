@@ -89,13 +89,14 @@ function styleMsg(x) {
     .replace(
       /\^(.*?)(?<!\\);/g, (x, y) => {
         var z = y.split(/(?<!\\),/g);
-        z = styles(z.shift(), z);
+        z = styles(z.shift(), z.map(x => styleMsg(x)));
         return z ?? x;
       }
     )
     .replace(/(!*?)!([<&"])/g, (x, z, y) =>
       z + (z.length % 2 == 1 ? y : { '<': '&lt;', '&': '&amp;', '"': '&quot;' }[y])
-    ).replace(/!!/g, '!');
+    ).replace(/!!/g, '!')
+    .replace(/(?<!\\)\\(,|;)/g, (x, y) => y);
   return y;
 }
 
@@ -114,6 +115,8 @@ function styles(x, y) {
       return `<b>${y.join(',')}</b>`;
     case 'i':
       return `<i>${y.join(',')}</i>`;
+    case 'u':
+      return `<u>${y.join(',')}</u>`;
     case 'c':
       return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
   }
