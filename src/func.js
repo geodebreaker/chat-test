@@ -136,10 +136,13 @@ function copyText(x) {
   navigator.clipboard.writeText(x).then(x => alert('copied to clipboard')).catch(x => { })
 }
 
-// window.onbeforeunload = e => {
-//   e.preventDefault();
-//   e.returnValue = '';
-// }
+/* 
+ * window.onbeforeunload = e => {
+ *   e.preventDefault();
+ *   e.returnValue = '';
+ * } 
+ * 
+ */ 
 
 function keepAlive() {
   requestAnimationFrame(keepAlive);
@@ -167,4 +170,43 @@ function playPing() {
   } else if (!ontab()) {
     Notification.requestPermission();
   }
+}
+
+function handle_cmd(cmd, args) {
+
+}
+
+function parseCmd(value) {
+
+  const txt = value.substring(1);
+  if (txt == '') return;
+
+  let cmd = null;
+  const args = [];
+
+  let InQuotes = false;
+  let StringConstruct = '';
+
+  for (let CharIndex = 0; CharIndex <= txt.length; CharIndex++) {
+		
+    const char = txt.charAt(CharIndex);
+    const HasEscapeChar = CharIndex != 0 && txt.charAt(CharIndex - 1) == '\\';
+    const IsQuote = !HasEscapeChar && char.replace('"', '\'') == '\'';        // this is ' char :mood:
+    
+    const IsWhitespace = char == ' ';  
+    
+    console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`);
+    
+    if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
+    if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
+      console.warn('PUSHING ' + StringConstruct);
+      args.push(StringConstruct);
+      StringConstruct = '';
+    } else if (!IsQuote && char != '\\') StringConstruct += char;
+
+  }
+  cmd = args.shift();
+  
+  return {cmd, args};
+
 }
