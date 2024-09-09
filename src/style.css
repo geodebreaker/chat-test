@@ -203,16 +203,17 @@ a:visited {
 
 .tag {
   border: 1px solid black;
-  font-size: 13px;
+  font-size: 15px;
   border-radius: 20px;
   margin-right: 3px;
   opacity: 0.5;
-  font-weight: lighter;
+  font-weight: normal;
   padding: 1px;
   line-height: 14px;
   display: inline-block;
-  height: 11px;
-  vertical-align: middle;
+  height: 10px;
+  vertical-align: baseline;
+  padding-right: 1px;
 }
 
 .tag._1 { 
