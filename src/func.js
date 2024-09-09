@@ -81,9 +81,10 @@ function clickLink(ev, t) {
     ev.preventDefault();
 }
 
+
 function styleMsg(x) {
   var y = x
-    .replace(/(?<= )@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
+    .replace(/(?<=^| )@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
     .replace(/!/g, '!!')
     .replace(/[<&"]/g, x => '!' + x)
     .replace(
@@ -95,7 +96,8 @@ function styleMsg(x) {
     )
     .replace(/(!*?)!([<&"])/g, (x, z, y) =>
       z + (z.length % 2 == 1 ? y : { '<': '&lt;', '&': '&amp;', '"': '&quot;' }[y])
-    ).replace(/!!/g, '!');
+    ).replace(/!!/g, '!')
+    .replace(/(?<!\\)\^.*?(?<!\\);/g, x => styleMsg(x))
   return y;
 }
 
@@ -103,10 +105,10 @@ function styles(x, y) {
   switch (x) {
     case 'l':
     case 'ls':
-      return (`<a onclick="clickLink(event, ${y[0].startsWith('#') ? "'" + y[0] + "'" : this.href
+      var href = y[0].startsWith('#')?y[0]:y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://');
+      return (`<a onclick="clickLink(event, ${y[0].startsWith('#') ? "'" + y[0] + "'" : href
         })" target="${x == 'l' ? '_blank' : ''
-        }" href="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')
-        }">${y[1] ?? y[0]
+        }" href="${href}">${y[1] ?? y[0]
         }</a>`);
     case 'p':
       return `<img src="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')}" class="img">`;
