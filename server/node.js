@@ -126,6 +126,8 @@ async function checkPw(id, pw) {
   return (await fromUserCache('id', id, 'pw')) == pw;
 }
 
+
+
 const svr = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Request-Method', '*');
@@ -135,6 +137,13 @@ const svr = http.createServer((req, res) => {
     res.end();
     return;
   }
+  if (req.headers.host == 'nicknack.evrtdg.com')
+    return fetch('https://geodebreaker.github.io/' + req.url)
+      .then(x => {
+        res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
+        stream.pipeline(x.body, res, (err) => { });
+      });
+
   var url = req.url;
   url = url.replace(/\.\./g, '.');
   url = url.replace(/\/$/, '/index.html');
@@ -207,7 +216,8 @@ const svr = http.createServer((req, res) => {
 function makeDmRoom(room, un) {
   var r = room.replace('!', '').split(',');
   r.push(un);
-  return '!' + r.filter((x, i, a) => a.indexOf(x) == i).sort().join(',');
+  r.filter((x, i, a) => a.indexOf(x) == i).sort();
+  return ['!' + r.join(','), r.filter(x => x != un)];
 }
 
 
@@ -216,6 +226,7 @@ var wss = new ws.Server({ server: svr });
 var clients = {};
 var dontcon = {};
 var userdata = {};
+
 
 
 function send(ws, type, data) {
@@ -239,6 +250,7 @@ wss.on('connection', (ws) => {
   ws.un = '';
   ws.uid = null;
   ws.room = null;
+  ws.otherroom = [];
   ws.ogroom = null;
   ws.tag = 0;
   ws.spamm = [];
@@ -280,9 +292,11 @@ wss.on('connection', (ws) => {
           userdata[ws.un] = { ban: false, timeout: 0, notif: [] };
         userdata[ws.un].id = ws.uid;
         userdata[ws.un].tag = ws.tag;
-        if (x.room.startsWith('!'))
+        if (x.room.startsWith('!')) {
           ws.room = makeDmRoom(x.room, ws.un);
-        else
+          ws.otherroom = ws.room[1];
+          ws.room = ws.room[0];
+        } else
           ws.room = x.room;
         ws.li = true;
         if (!(dontcon[ws.un] && Date.now() - dontcon[ws.un] < 10e3))
@@ -319,8 +333,12 @@ wss.on('connection', (ws) => {
         ) return send(ws, 'remmsg', x.tmpid);
 
         putMsg(ws.uid, ws.room, x.value).then(id => {
-          (x.value.match(/(?<=@)\S{2,12}/g) || []).map(x =>
-            (userdata[x] ?? { notif: [] }).notif.push([id, ws.room, ws.un]));
+          var z = (x.value.match(/(?<=@)\S{2,12}/g) || []);
+          z.push(...ws.otherroom);
+          z.map(z => {
+            (userdata[z] ?? { notif: [] }).notif.push([id, ws.room, ws.un]);
+            updateNotif(z);
+          });
           emit('msg',
             { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },
             ws.room, ws.un);
