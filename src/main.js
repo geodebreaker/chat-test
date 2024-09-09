@@ -57,12 +57,28 @@ var loggedin = false;
 var menuopen = false;
 var userlist = [];
 
+
+
 function send(value) {
   if (value != '') {
-    var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
-    ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
-    mkmsg(un, value, id, Date.now(), tag);
-    $('#msg').value = '';
+
+    const is_cmd = value.startsWith('/');
+    if (is_cmd) {
+
+      // command
+      const cmd_data = value.substring(1);
+      if (cmd_data != '') runcmd(value);
+
+    } else {
+
+      // normal message
+      var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
+      ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
+      mkmsg(un, value, id, Date.now(), tag);
+      $('#msg').value = '';
+
+    }
+
   }
 }
 
