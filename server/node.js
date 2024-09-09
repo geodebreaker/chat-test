@@ -48,10 +48,10 @@ function getRoomData(room) {
     conn.query(sql, [room], async (error, results) => {
       console.log(`Got room data for room ${room}`)
       y(
-        await compress(JSON.stringify((await Promise.all(results
-          .map(async x => (
-            { date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id, tag: await getUserTag(x.user) }))
-        )).sort((a, b) => a.date - b.date)))
+        /*await compress(JSON.stringify(*/(await Promise.all(results
+        .map(async x => (
+          { date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id, tag: await getUserTag(x.user) }))
+      )).sort((a, b) => a.date - b.date)/*))*/
       );
     });
   });
@@ -101,7 +101,15 @@ function fromUserCache(type, value, newType) {
         }
         var res = results[0];
         if (res) {
-          usercache.push({ id: results[0].id, un: results[0].un, pw: results[0].pw, perm: results[0].perm, time: Date.now() });
+          usercache.push({
+            id: results[0].id,
+            un: results[0].un,
+            pw: results[0].pw,
+            perm: results[0].perm,
+            ban: results[0].ban,
+            notif: results[0].notif,
+            time: Date.now()
+          });
           // console.log(`UCache miss: ${type} ${value} ${newType} -> ${res[newType]}`);
         }
         y((res ?? {})[newType]);
@@ -124,6 +132,24 @@ function fromUsername(un) {
 
 async function checkPw(id, pw) {
   return (await fromUserCache('id', id, 'pw')) == pw;
+}
+
+function setUserData(id, name, val) {
+  const sql = 'UPDATE users SET ' + name + '=? WHERE id=?';
+  conn.query(sql, [val, id], (error, results) => {
+    if (error) {
+      return;
+    }
+    console.log('set user data for id ' + id + ': ' + name + '=' + val)
+    var u = usercache.find(x => x.id == id && Date.now() - x.time < 60 * 60e3);
+    if (u) {
+      u[name] = val;
+    }
+  });
+}
+
+function getUserData(id, val) {
+  return fromUserCache('id', id, val);
 }
 
 
@@ -225,7 +251,6 @@ function makeDmRoom(room, un) {
 var wss = new ws.Server({ server: svr });
 var clients = {};
 var dontcon = {};
-var userdata = {};
 
 
 
@@ -288,10 +313,8 @@ wss.on('connection', (ws) => {
         ws.uid = id;
         ws.un = un;
         ws.tag = await getUserTag(ws.uid);
-        if (!userdata[ws.un])
-          userdata[ws.un] = { ban: false, timeout: 0, notif: [] };
-        userdata[ws.un].id = ws.uid;
-        userdata[ws.un].tag = ws.tag;
+        if (await getUserData(ws.uid, 'ban') == 'true')
+          ws.tag = -1;
         if (x.room.startsWith('!')) {
           ws.room = makeDmRoom(x.room, ws.un);
           ws.otherroom = ws.room[1];
@@ -303,14 +326,24 @@ wss.on('connection', (ws) => {
           emit('connect', [ws.un, ws.tag], ws.room, ws.un);
         console.log(`${ws.un} logged into room ${ws.room}`);
         clients[ws.un] = ws;
-        getRoomData(ws.room).then(x =>
-          send(ws, 'li', [true, ws.tag, x])
-        );
+        if (ws.room.startsWith('?')) {
+          if (ws.room == '?notif') {
+            send(ws, 'li', [true, ws.tag, []]);
+            JSON.parse(await getUserData(ws.uid, 'notif') || '[]').reverse().map(x =>
+              send(ws, 'alert', [x[2] + ':', '^ls,#' + x[1] + ';']));
+          } else {
+            send(ws, 'li', [false, 'invalid util room']);
+          }
+        } else {
+          getRoomData(ws.room).then(x =>
+            send(ws, 'li', [true, ws.tag, x])
+          );
+        }
 
         break;
       case 'msg':
 
-        var spam = ws.tag == 0 ? -10 : -25;
+        var spam = (ws.tag + 1) * -10;
         var now = Date.now();
         if (ws.tag <= 2) {
           ws.spamt.push(now);
@@ -319,25 +352,32 @@ wss.on('connection', (ws) => {
             ws.spamt.shift();
             ws.spamm.shift();
           }
-          spam = Math.floor(5 - x.value.length) - 2;
-          spam += ws.spamt.map(s => s >= now - 20e3).reduce((a, b) => a + b);
+          spam += Math.floor(5 - x.value.length) - 2;
+          spam += ws.spamt.map(s => s >= now - 10e3).reduce((a, b) => a + b);
           spam += ws.spamm.map(s => s == x.value).reduce((a, b) => a + b);
         }
 
-        if (spam > 5) userdata[ws.un].timeout = now + 30e3;
+        if (spam > 10) {
+          setUserData(ws.uid, 'timeout', now + 10e3);
+          send(ws, 'alert', ['timed out:', '10s']);
+        }
+
         if (
-          x.value.length > 128 ||
-          userdata[ws.un].ban ||
-          userdata[ws.un].timeout > now ||
+          x.value.length > 156 ||
+          await getUserData(ws.uid, 'ban') ||
+          await getUserData(ws.uid, 'timeout') > now ||
           spam > 0
         ) return send(ws, 'remmsg', x.tmpid);
 
         putMsg(ws.uid, ws.room, x.value).then(id => {
           var z = (x.value.match(/(?<=@)\S{2,12}/g) || []);
           z.push(...ws.otherroom);
-          z.map(z => {
-            (userdata[z] ?? { notif: [] }).notif.push([id, ws.room, ws.un]);
-            updateNotif(z);
+          z.map(async z => {
+            var uid = await fromUsername(z);
+            if (!uid) return;
+            setUserData(uid, 'notif', JSON.stringify(JSON.parse(
+              await getUserData(uid, 'notif') || '[]').concat([[id, ws.room, ws.un]])
+              .filter((x, y) => y < 32)))
           });
           emit('msg',
             { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },
@@ -368,20 +408,25 @@ wss.on('connection', (ws) => {
           switch (x[0]) {
             case 'ban':
 
-              if (userdata[x[1]] && userdata[x[1]].tag > 1)
+              var id = await fromUsername(x[1]);
+              if (!id)
                 return;
-              userdata[x[1]] = userdata[x[1]] || { timeout: 0, ban: false, notif: [] };
-              userdata[x[1]].ban = !userdata[x[1]].ban;
-              emit('ban', x[1], ws.room);
+              if (await getUserData(id, 'tag') > 1)
+                return;
+              var b = await getUserData(id, 'ban');
+              setUserData(id, 'ban', !b);
+              emit('alert', ['user ' + (b ? 'un' : '') + 'banned:', x[1]], ws.room);
 
               break;
             case 'to':
 
-              if (userdata[x[1]] && userdata[x[1]].tag > 1)
+              var id = await fromUsername(x[1]);
+              if (!id)
                 return;
-              userdata[x[1]] = userdata[x[1]] || { timeout: 0, ban: false, notif: [] };
-              userdata[x[1]].timeout = Date.now() + x[2];
-              emit('to', [x[1], x[2]], ws.room);
+              if (await getUserData(id, 'tag') > 1)
+                return;
+              setUserData(ws.uid, 'timeout', now + 10e3);
+              send(ws, 'alert', ['timed out:', '10s']);
 
               break;
             case 'del':
