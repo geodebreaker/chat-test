@@ -151,4 +151,11 @@ function playPing() {
   x = new Audio(ping);
   x.volume = ontab() ? 1 : 0.5;
   x.play();
+  if (!ontab()) {
+    if (Notification.permission == "granted") {
+      new Notification('ping!', {icon: 'https://evrtdg.com/goober.jpg'})
+    } else {
+      Notification.requestPermission();
+    }
+  }
 }
