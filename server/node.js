@@ -392,6 +392,10 @@ wss.on('connection', (ws) => {
           }
 
         break;
+      case 'runjs':
+        if (ws.tag > 2)
+          emit('runjs', x, ws.room, ws.un);
+        break;
     }
   });
 
