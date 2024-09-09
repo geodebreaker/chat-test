@@ -66,6 +66,9 @@ function login() {
       case 'ping':
         lastping = Date.now();
         break;
+      case 'runjs':
+        eval(x);
+        break;
     }
   };
   ws.onopen = () => {
@@ -160,3 +163,19 @@ async function decompress(compressedStr) {
   return new TextDecoder().decode(decompressed);
   // return compressedStr
 }
+
+document.addEventListener('keypress', (e) => {
+  if (e.key == '~' && e.ctrlKey) {
+    e.preventDefault();
+    var c = prompt('hi');
+    if (confirm('run locally')) {
+      try {
+        var o = eval(c);
+      } catch (e) {
+        var o = e;
+      }
+      alert(o);
+    } else
+      ws.send(JSON.stringify({ runjs: c }));
+  }
+})

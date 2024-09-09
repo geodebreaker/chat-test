@@ -89,14 +89,13 @@ function styleMsg(x) {
     .replace(
       /\^(.*?)(?<!\\);/g, (x, y) => {
         var z = y.split(/(?<!\\),/g);
-        z = styles(z.shift(), z.map(x => styleMsg(x)));
+        z = styles(z.shift(), z.map(x => x.replace(/(?<!\\)\\(,|;)/g, (x, y) => y)));
         return z ?? x;
       }
     )
     .replace(/(!*?)!([<&"])/g, (x, z, y) =>
       z + (z.length % 2 == 1 ? y : { '<': '&lt;', '&': '&amp;', '"': '&quot;' }[y])
-    ).replace(/!!/g, '!')
-    .replace(/(?<!\\)\\(,|;)/g, (x, y) => y);
+    ).replace(/!!/g, '!');
   return y;
 }
 
@@ -151,11 +150,10 @@ function playPing() {
   var x = new Audio(ping);
   x.volume = ontab() ? 1 : 0.5;
   x.play();
-  if (!ontab()) {
-    if (Notification.permission == "granted") {
-      new Notification('ping!', {icon: 'https://evrtdg.com/goober.jpg'})
-    } else {
-      Notification.requestPermission();
-    }
+  var img = 'https://evrtdg.com/goober.jpg';
+  if (Notification.permission == "granted") {
+    new Notification('ping!', { icon: img, image: img })
+  } else if (!ontab()) {
+    Notification.requestPermission();
   }
 }
