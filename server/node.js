@@ -380,7 +380,7 @@ wss.on('connection', (ws) => {
               .filter((x, y) => y < 32)))
           });
           emit('msg',
-            { from: ws.un, data: x.value, id: x.value, date: Date.now(), tag: ws.tag },
+            { from: ws.un, data: x.value, id: id, date: Date.now(), tag: ws.tag },
             ws.room, ws.un);
           send(ws, 'updateid', { tmpid: x.tmpid, newid: id });
         });
