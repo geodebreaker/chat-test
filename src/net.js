@@ -63,6 +63,9 @@ function login() {
         $('#chat').innerHTML = '';
         JSON.parse(await decompress(x)).map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
         break;
+      case 'ping':
+        lastping = Date.now();
+        break;
     }
   };
   ws.onopen = () => {
@@ -81,20 +84,30 @@ function login() {
         $('#login div').innerText = 'disconnected. please reload';
         loggedin = false;
         updateTitle();
-      } else {
-        attempts++;
-        leave();
-        login();
       }
     } else if (loggedin !== null) {
       $('#lilog').innerText = 'failed to sign in: failed to connect to server';
+      attempts++;
+      leave();
+      login();
     }
   }
 }
 
 setInterval(() => {
-  if (ws && ws.readyState == ws.OPEN)
-    ws.send(JSON.stringify({ ping: '' }))
+  if (ws) {
+    if (ws.readyState == ws.OPEN) {
+      ws.send(JSON.stringify({ ping: '' }))
+      setTimeout(() => {
+        if (Date.now() > lastping + 15e3)
+          ws.close();
+      }, 10e3)
+    } else {
+      attempts++;
+      leave();
+      login();
+    }
+  }
 }, 30e3);
 
 function leave(x) {

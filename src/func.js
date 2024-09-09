@@ -148,7 +148,7 @@ function genTag(un, n, f) {
 }
 
 function playPing() {
-  x = new Audio(ping);
+  var x = new Audio(ping);
   x.volume = ontab() ? 1 : 0.5;
   x.play();
   if (!ontab()) {
