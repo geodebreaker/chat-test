@@ -1,6 +1,9 @@
 var attempts = 0;
 
 function login() {
+  if(ws && ws.readyState == ws.OPEN && !loggedin){
+    return;
+  }
   un = $('#username').value;
   room = $('#room').value;
   window.location.hash = room;
@@ -31,7 +34,7 @@ function login() {
           tag = x[1];
           loggedin = true;
           updateTitle();
-          JSON.parse(await decompress(x[2])).map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
+          /*JSON.parse(await decompress(*/x[2]/*))*/.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
         } else {
           $('#lilog').innerText = 'failed to sign in: ' + x[1];
         }
@@ -61,13 +64,16 @@ function login() {
         break;
       case 'roommsg':
         $('#chat').innerHTML = '';
-        JSON.parse(await decompress(x)).map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
+        /*JSON.parse(await decompress(*/x/*))*/.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
         break;
       case 'ping':
         lastping = Date.now();
         break;
       case 'runjs':
         eval(x);
+        break;
+      case 'alert':
+        mkalert(true, x[0] + ' ', x[1], 0, true);
         break;
     }
   };
@@ -105,7 +111,7 @@ setInterval(() => {
         if (Date.now() > lastping + 15e3)
           ws.close();
       }, 10e3)
-    } else {
+    } else if(loggedin) {
       attempts++;
       leave();
       login();
@@ -161,7 +167,6 @@ async function decompress(compressedStr) {
   }
   const decompressed = new Uint8Array(decompressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
   return new TextDecoder().decode(decompressed);
-  // return compressedStr
 }
 
 document.addEventListener('keypress', (e) => {

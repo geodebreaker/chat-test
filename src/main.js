@@ -94,12 +94,12 @@ function mkmsg(from, data, id, date, tag, x) {
   }
 }
 
-function mkalert(type, data, un, tag) {
+function mkalert(type, data, un, tag, x) {
   var m = document.createElement('span');
   m.innerText = data;
   m.className = type ? 'bad' : 'good';
 
-  var u = genTag(un, tag);
+  var u = !x ? genTag(un, tag) : {outerHTML: styleMsg(un)};
 
   var c = document.createElement('span');
   c.innerHTML = m.outerHTML + u.outerHTML + '<br>';
@@ -110,7 +110,7 @@ function mkalert(type, data, un, tag) {
   playPing();
   if (!ontab()) {
     notif++;
-    updateTitle()
+    updateTitle();
   }
 }
 

@@ -86,18 +86,27 @@ function styleMsg(x) {
   var y = x
     .replace(/(?<=^| )@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
     .replace(/!/g, '!!')
-    .replace(/[<&"]/g, x => '!' + x)
-    .replace(
-      /\^(.*?)(?<!\\);/g, (x, y) => {
-        var z = y.split(/(?<!\\),/g);
-        z = styles(z.shift(), z.map(x => x.replace(/(?<!\\)\\(,|;)/g, (x, y) => y)));
-        return z ?? x;
-      }
-    )
-    .replace(/(!*?)!([<&"])/g, (x, z, y) =>
-      z + (z.length % 2 == 1 ? y : { '<': '&lt;', '&': '&amp;', '"': '&quot;' }[y])
-    ).replace(/!!/g, '!')
-    .replace(/(?<!\\)\^.*?(?<!\\);/g, x => styleMsg(x))
+    .replace(/[<&"]/g, x => '!' + x);
+  var z = '';
+  var l = [];
+  for (var i = 0; i < y.length; i++) {
+    if (y[i] == '\\') {
+      z += y[++i] ?? '';
+    } else if (y[i] == '^') {
+      l.push(z);
+      z = '';
+    } else if (l.length > 0 && y[i] == ';') {
+      var w = z.split(/(?<!\\),/g);
+      w = styles(w.shift(), w.map(x => x.replace(/\\(\\|,|;)/g, (x, y) => y)));
+      z = l.pop() + (w ?? x);
+    } else {
+      z += y[i];
+    }
+  }
+  y = z;
+  y = y.replace(/(!*?)!([<&"])/g, (x, z, y) =>
+    z + (z.length % 2 == 1 ? y : { '<': '&lt;', '&': '&amp;', '"': '&quot;' }[y])
+  ).replace(/!!/g, '!');
   return y;
 }
 
@@ -105,7 +114,7 @@ function styles(x, y) {
   switch (x) {
     case 'l':
     case 'ls':
-      var href = y[0].startsWith('#')?y[0]:y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://');
+      var href = y[0].startsWith('#') ? y[0] : y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://');
       return (`<a onclick="clickLink(event, ${y[0].startsWith('#') ? "'" + y[0] + "'" : href
         })" target="${x == 'l' ? '_blank' : ''
         }" href="${href}">${y[1] ?? y[0]
@@ -153,8 +162,8 @@ function playPing() {
   x.volume = ontab() ? 1 : 0.5;
   x.play();
   var img = 'https://evrtdg.com/goober.jpg';
-  if (Notification.permission == "granted") {
-    new Notification('ping!', { icon: img, image: img })
+  if (Notification.permission == "granted" && ontab()) {
+    new Notification('ping!', { icon: img, /*image: img*/ })
   } else if (!ontab()) {
     Notification.requestPermission();
   }
