@@ -11,7 +11,7 @@ function init() {
   }
 
   document.addEventListener('click', e => {
-    if (!(e.target == $('#rclick') || $('#rclick').contains(e.target)))
+    if (!(e.target == $('#rclick') || ($('#rclick').contains(e.target) && !e.target.classList.contains('btn'))))
       $('#rclick').hidePopover();
   });
   window.onfocus = () => { notif = 0; updateTitle() };
