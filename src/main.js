@@ -65,9 +65,7 @@ function send(value) {
     const is_cmd = value.startsWith('/');
     if (is_cmd) {
 
-      // command
-      const cmd_data = value.substring(1);
-      if (cmd_data != '') runcmd(value);
+      // command functionality to add later
 
     } else {
 
