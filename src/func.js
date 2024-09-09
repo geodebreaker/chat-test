@@ -165,7 +165,7 @@ function playPing() {
   x.volume = ontab() ? 1 : 0.5;
   x.play();
   var img = 'https://evrtdg.com/goober.jpg';
-  if (Notification.permission == "granted" && ontab()) {
+  if (Notification.permission == "granted" && !ontab()) {
     new Notification('ping!', { icon: img, /*image: img*/ })
   } else if (!ontab()) {
     Notification.requestPermission();
