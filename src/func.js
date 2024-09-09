@@ -172,10 +172,6 @@ function playPing() {
   }
 }
 
-function handle_cmd(cmd, args) {
-
-}
-
 function parseCmd(value) {
 
   const txt = value.substring(1);
@@ -195,7 +191,7 @@ function parseCmd(value) {
     
     const IsWhitespace = char == ' ';  
     
-    console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`);
+    // console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`); - for debugging if needed
     
     if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
     if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
