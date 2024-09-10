@@ -136,7 +136,7 @@ function updateMenu() {
   $('#menu').innerHTML = '';
   for (var un of userlist) {
     var u = genTag(un[0], un[2]);
-    $('#menu').innerHTML += u.outerHTML + '<br>';
+    $('#menu').innerHTML += (un[1] ? '-' : '+') + u.outerHTML + '<br>';
   }
 }
 
