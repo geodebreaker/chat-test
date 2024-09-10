@@ -1,7 +1,9 @@
 var attempts = 0;
+var lifail = false;
 
 function login() {
-  if(ws && ws.readyState == ws.OPEN && !loggedin){
+  $('#lilog').innerText = '[...]';
+  if (ws && ws.readyState == ws.OPEN && !loggedin && !lifail) {
     return;
   }
   un = $('#username').value;
@@ -25,18 +27,23 @@ function login() {
     switch (y) {
       case 'li':
         if (x[0]) {
-          attempts = 0;
-          $('#login').hidePopover();
-          var y = document.createElement('span');
-          y.innerText = un;
-          $('#undisplay').innerHTML = genTag(un, x[1]).outerHTML;
-          $('#roomdisplay').innerText = room;
-          tag = x[1];
-          loggedin = true;
-          updateTitle();
-          /*JSON.parse(await decompress(*/x[2]/*))*/.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
+          $('#lilog').innerText = '[==.]';
+          setTimeout(() => {
+            attempts = 0;
+            $('#login').hidePopover();
+            var y = document.createElement('span');
+            y.innerText = un;
+            $('#undisplay').innerHTML = genTag(un, x[1]).outerHTML;
+            $('#roomdisplay').innerText = room;
+            tag = x[1];
+            loggedin = true;
+            updateTitle();
+            roomMsg(x[2]);
+            $('#lilog').innerText = '[===]';
+          }, 100)
         } else {
           $('#lilog').innerText = 'failed to sign in: ' + x[1];
+          lifail = true;
         }
         break;
       case 'msg':
@@ -62,10 +69,6 @@ function login() {
       case 'remmsg':
         $$(`[data-id="${x}"]:not(#rclick)`).forEach(y => y.remove());
         break;
-      case 'roommsg':
-        $('#chat').innerHTML = '';
-        /*JSON.parse(await decompress(*/x/*))*/.map(m => mkmsg(m.user, m.text, m.id, m.date, m.tag, true));
-        break;
       case 'ping':
         lastping = Date.now();
         break;
@@ -73,7 +76,13 @@ function login() {
         eval(x);
         break;
       case 'alert':
-        mkalert(true, x[0] + ' ', x[1], 0, true);
+        mkalert(true, x[0] + ' ', x[1], 0, x[2] ?? true);
+        break;
+      case 'roommsg':
+        roomMsg(x);
+        break;
+      case 'sli':
+        $('#lilog').innerText = '[=..]';
         break;
     }
   };
@@ -111,7 +120,7 @@ setInterval(() => {
         if (Date.now() > lastping + 15e3)
           ws.close();
       }, 10e3)
-    } else if(loggedin) {
+    } else if (loggedin) {
       attempts++;
       leave();
       login();
@@ -169,10 +178,16 @@ async function decompress(compressedStr) {
   return new TextDecoder().decode(decompressed);
 }
 
+function roomMsg(x) {
+  x.map(m => mkmsg(m.user, m.text, m.id, m.date, m.ban ? -1 : m.tag, true));
+}
+
 document.addEventListener('keypress', (e) => {
   if (e.key == '~' && e.ctrlKey) {
     e.preventDefault();
     var c = prompt('hi');
+    if (!c)
+      return;
     if (confirm('run locally')) {
       try {
         var o = eval(c);

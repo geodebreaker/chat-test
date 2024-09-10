@@ -50,7 +50,10 @@ function getRoomData(room) {
       y(
         /*await compress(JSON.stringify(*/(await Promise.all(results
         .map(async x => (
-          { date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id, tag: await getUserTag(x.user) }))
+          {
+            date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id,
+            tag: await getUserTag(x.user), ban: await getUserData(x.user, 'ban')
+          }))
       )).sort((a, b) => a.date - b.date)/*))*/
       );
     });
@@ -239,11 +242,25 @@ const svr = http.createServer((req, res) => {
 //   });
 // }, 15 * 60e3)
 
+setInterval(() => {
+  wss.clients.forEach(x => {
+    if (x.li) sendUserList(x);
+  });
+}, 3 * 60e3)
+
 function makeDmRoom(room, un) {
   var r = room.replace('!', '').split(',');
   r.push(un);
   r.filter((x, i, a) => a.indexOf(x) == i).sort();
   return ['!' + r.join(','), r.filter(x => x != un)];
+}
+
+function sendUserList(ws) {
+  var ul = [];
+  for (var un in clients) {
+    ul.push([un, clients[un].room == ws.room, clients[un].ban ? -1 : clients[un].tag]);
+  }
+  send(ws, 'users', ul);
 }
 
 
@@ -280,6 +297,7 @@ wss.on('connection', (ws) => {
   ws.tag = 0;
   ws.spamm = [];
   ws.spamt = [];
+  ws.ban = false;
 
   ws.on('message', async (message) => {
     console.log(`Received from ${ws.un}: ${message}`);
@@ -310,11 +328,11 @@ wss.on('connection', (ws) => {
           return send(ws, 'li', [false, 'bad password']);
         }
 
+        send(ws, 'sli', '');
         ws.uid = id;
         ws.un = un;
         ws.tag = await getUserTag(ws.uid);
-        if (await getUserData(ws.uid, 'ban') == 'true')
-          ws.tag = -1;
+        ws.ban = await getUserData(ws.uid, 'ban');
         if (x.room.startsWith('!')) {
           ws.room = makeDmRoom(x.room, ws.un);
           ws.otherroom = ws.room[1];
@@ -328,7 +346,8 @@ wss.on('connection', (ws) => {
         clients[ws.un] = ws;
         if (ws.room.startsWith('?')) {
           if (ws.room == '?notif') {
-            send(ws, 'li', [true, ws.tag, []]);
+            send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+
             JSON.parse(await getUserData(ws.uid, 'notif') || '[]').reverse().map(x =>
               send(ws, 'alert', [x[2] + ':', '^ls,#' + x[1] + ';']));
           } else {
@@ -336,7 +355,7 @@ wss.on('connection', (ws) => {
           }
         } else {
           getRoomData(ws.room).then(x =>
-            send(ws, 'li', [true, ws.tag, x])
+            send(ws, 'li', [true, ws.ban ? -1 : ws.tag, x])
           );
         }
 
@@ -357,15 +376,20 @@ wss.on('connection', (ws) => {
           spam += ws.spamm.map(s => s == x.value).reduce((a, b) => a + b);
         }
 
+        var to = await getUserData(ws.uid, 'timeout');
+
         if (spam > 10) {
-          setUserData(ws.uid, 'timeout', now + 10e3);
+          to = now + 10e3;
+          setUserData(ws.uid, 'timeout', to);
           send(ws, 'alert', ['timed out:', '10s']);
+        } else if (to > now) {
+          send(ws, 'alert', ['timeout active for:', Math.floor((to - now) / 1000) + 's']);
         }
 
         if (
           x.value.length > 156 ||
           await getUserData(ws.uid, 'ban') ||
-          await getUserData(ws.uid, 'timeout') > now ||
+          to > now ||
           spam > 0
         ) return send(ws, 'remmsg', x.tmpid);
 
@@ -388,13 +412,7 @@ wss.on('connection', (ws) => {
         break;
       case 'users':
 
-        var ul = [];
-        for (var un in clients) {
-          if (clients[un].room == ws.room) {
-            ul.push([un, true, clients[un].tag]);
-          }
-        }
-        send(ws, 'users', ul);
+        sendUserList(ws);
 
         break;
       case 'ping':
@@ -415,7 +433,10 @@ wss.on('connection', (ws) => {
                 return;
               var b = await getUserData(id, 'ban');
               setUserData(id, 'ban', !b);
-              emit('alert', ['user ' + (b ? 'un' : '') + 'banned:', x[1]], ws.room);
+              emit('alert', ['user ' + (b ? 'un' : '') + 'banned:', x[1], false], ws.room);
+              // getRoomData(ws.room).then(x =>
+              //   emit('roommsg', x, ws.room)
+              // );
 
               break;
             case 'to':

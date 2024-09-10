@@ -154,7 +154,7 @@ function genTag(un, n, f) {
   var u = document.createElement('span');
   var y = document.createElement('span');
   y.innerText = un;
-  u.innerHTML = (n > 0 ? `<span class="tag _${n}">${'VMA'[n - 1]}</span>` : '') + y.innerHTML + (f ? ': ' : '');
+  u.innerHTML = (n != 0 ? `<span class="tag _${n}">${'X VMA'[n + 1]}</span>` : '') + y.innerHTML + (f ? ': ' : '');
   u.className = 'usertag';
   u.style.color = n < 0 ? 'red' : colorhash(un);
   return u;
@@ -166,7 +166,7 @@ function playPing() {
   x.play();
   var img = 'https://evrtdg.com/goober.jpg';
   if (Notification.permission == "granted" && !ontab()) {
-    new Notification('ping!', { icon: img, /*image: img*/ })
+    new Notification('ping!', { icon: img, /*image: img*/ });
   } else if (!ontab()) {
     Notification.requestPermission();
   }
