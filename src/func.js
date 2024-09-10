@@ -191,7 +191,8 @@ function parseCmd(value) {
     
     const IsWhitespace = char == ' ';  
     
-    // console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`); - for debugging if needed
+    // console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`); 
+    // for debugging if needed
     
     if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
     if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
