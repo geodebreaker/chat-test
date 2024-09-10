@@ -66,6 +66,7 @@ function send(value) {
     if (is_cmd) {
 
       // command functionality to add later
+      $('#msg').value = '';
 
     } else {
 
