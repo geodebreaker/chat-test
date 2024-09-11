@@ -136,11 +136,11 @@ function getTopRooms() {
 
 function getAllUsers() {
   return new Promise((y, n) => {
-    var sql = "SELECT un FROM users";
+    var sql = "SELECT un, perm, ban FROM users";
     conn.query(sql, (error, results) => {
       if (error)
         return n(error);
-      y(results.map(x => [x.un, clients[x.un] != undefined]));
+      y(results.map(x => [x.un, clients[x.un] != undefined, x.ban ? -1 : x.perm]));
     });
   });
 }
@@ -395,7 +395,7 @@ wss.on('connection', (ws) => {
 
             getAllUsers().then(x =>
               x.map(x =>
-                send(ws, 'alert', [(x[1] ? 'on' : 'off') + 'line:', x[0], false, x[1]])
+                send(ws, 'alert', [(x[1] ? ' on' : 'off') + 'line:', x[0], false, x[1], x[2]])
               )
             );
           } else if (ws.room == '?find') {
