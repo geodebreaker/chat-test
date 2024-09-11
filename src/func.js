@@ -122,13 +122,14 @@ function styles(x, y) {
     case 'p':
       return `<img src="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')}" class="img">`;
     case 'b':
-      return `<b>${y.join(',')}</b>`;
     case 'i':
-      return `<i>${y.join(',')}</i>`;
     case 'u':
-      return `<u>${y.join(',')}</u>`;
+    case 's':
+      return `<${x}>${y.join(',')}</${x}>`;
     case 'c':
       return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
+    case 'h':
+      return `<span style="background-color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
   }
 }
 
@@ -142,7 +143,7 @@ function copyText(x) {
  *   e.returnValue = '';
  * } 
  * 
- */ 
+ */
 
 function keepAlive() {
   requestAnimationFrame(keepAlive);
@@ -184,16 +185,16 @@ function parseCmd(value) {
   let StringConstruct = '';
 
   for (let CharIndex = 0; CharIndex <= txt.length; CharIndex++) {
-		
+
     const char = txt.charAt(CharIndex);
     const HasEscapeChar = CharIndex != 0 && txt.charAt(CharIndex - 1) == '\\';
     const IsQuote = !HasEscapeChar && char.replace('"', '\'') == '\'';        // this is ' char :mood:
-    
-    const IsWhitespace = char == ' ';  
-    
+
+    const IsWhitespace = char == ' ';
+
     // console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`); 
     // for debugging if needed
-    
+
     if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
     if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
       console.warn('PUSHING ' + StringConstruct);
@@ -203,7 +204,7 @@ function parseCmd(value) {
 
   }
   cmd = args.shift();
-  
-  return {cmd, args};
+
+  return { cmd, args };
 
 }

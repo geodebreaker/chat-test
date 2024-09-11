@@ -2,7 +2,8 @@ var attempts = 0;
 var lifail = false;
 
 function login() {
-  $('#lilog').innerText = '[...]';
+  $('#lilog').style.color = 'green';
+  $('#lilog').innerText = '[---]';
   if (ws && ws.readyState == ws.OPEN && !loggedin && !lifail) {
     return;
   }
@@ -27,21 +28,25 @@ function login() {
     switch (y) {
       case 'li':
         if (x[0]) {
-          $('#lilog').innerText = '[==.]';
-          setTimeout(() => {
+          $('#msg').style.visibility =
+            $('#send').style.visibility = 'hidden';
+          $('#lilog').innerText = '[==-]';
+          setTimeout(async () => {
             attempts = 0;
+            loggedin = true;
+            await roomMsg(x[2], true);
             $('#login').hidePopover();
-            var y = document.createElement('span');
-            y.innerText = un;
             $('#undisplay').innerHTML = genTag(un, x[1]).outerHTML;
             $('#roomdisplay').innerText = room;
             tag = x[1];
-            loggedin = true;
             updateTitle();
-            roomMsg(x[2]);
             $('#lilog').innerText = '[===]';
+            $('#msg').style.visibility =
+              $('#send').style.visibility =
+              room.startsWith('?') ? 'hidden' : 'visible';
           }, 100)
         } else {
+          $('#lilog').style.color = 'red';
           $('#lilog').innerText = 'failed to sign in: ' + x[1];
           lifail = true;
         }
@@ -82,7 +87,7 @@ function login() {
         roomMsg(x);
         break;
       case 'sli':
-        $('#lilog').innerText = '[=..]';
+        $('#lilog').innerText = '[=--]';
         break;
     }
   };
@@ -137,6 +142,7 @@ function leave(x) {
   userlist = [];
   notif = 0;
   updateTitle();
+  $('#lilog').innerText = '';
 }
 
 var ping;
@@ -178,8 +184,28 @@ async function decompress(compressedStr) {
   return new TextDecoder().decode(decompressed);
 }
 
-function roomMsg(x) {
-  x.map(m => mkmsg(m.user, m.text, m.id, m.date, m.ban ? -1 : m.tag, true));
+function roomMsg(z, a) {
+  var b = 100;
+  var x = z;
+  var l = Math.ceil(z.length / b);
+  var c = 0;
+  return new Promise((y) => {
+    if (!room.startsWith('?'))
+      $('#chat').innerText = '';
+    var fn = () => {
+      c++;
+      x.splice(0, 100).map(m => mkmsg(m.user, m.text, m.id, m.date, m.ban ? -1 : m.tag, true));
+      if (a) {
+        try {
+          $('#lilog').innerText = '[==-] [' + '='.repeat(c) + '-'.repeat(l - c) + ']';
+        } catch (e) { }
+      }
+      if (x.length == 0)
+        return y();
+      setTimeout(fn);
+    };
+    fn();
+  });
 }
 
 document.addEventListener('keypress', (e) => {
