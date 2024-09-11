@@ -121,7 +121,7 @@ function getTopRooms() {
   return new Promise((y, n) => {
     var sql = "SELECT room, COUNT(*) AS cnt, " +
       "COUNT(*) - (TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), MAX(date)) / 300000) AS rnk " +
-      "FROM msg WHERE room NOT LIKE '!%' AND room NOT LIKE '?%' GROUP BY room ORDER BY rnk DESC LIMIT 10";
+      "FROM msg WHERE room NOT LIKE '!%' AND room NOT LIKE '?%' GROUP BY room ORDER BY rnk DESC"// LIMIT 10";
     conn.query(sql, (error, results) => {
       if (error)
         return n(error);
@@ -452,7 +452,7 @@ wss.on('connection', (ws) => {
             .filter(x => x != ws.un).map(async z => {
               var uid = await fromUsername(z);
               if (!uid) return;
-              var rm = ws.otherroom ? '!' + ws.otherroom.filter(x => x != z).join(',') : ws.room;
+              var rm = ws.otherroom.length > 0 ? '!' + ws.otherroom.filter(x => x != z).join('\\,') : ws.room;
               if (clients[z] && clients[z].room != ws.room)
                 send(clients[z], 'alert', ['pinged:', `by @${ws.un} in ^ls,#${rm};`, true, true]);
               setUserData(uid, 'notif', JSON.stringify(JSON.parse(
@@ -491,9 +491,6 @@ wss.on('connection', (ws) => {
               var b = await getUserData(id, 'ban');
               setUserData(id, 'ban', !b);
               emit('alert', ['user ' + (b ? 'un' : '') + 'banned:', x[1], false], ws.room);
-              // getRoomData(ws.room).then(x =>
-              //   emit('roommsg', x, ws.room)
-              // );
 
               break;
             case 'to':
@@ -503,8 +500,11 @@ wss.on('connection', (ws) => {
                 return;
               if (await getUserData(id, 'tag') > 1)
                 return;
-              setUserData(ws.uid, 'timeout', now + 10e3);
-              send(ws, 'alert', ['timed out:', '10s']);
+              var to = now + x[2];
+              setUserData(ws.uid, 'timeout', now + x[2]);
+              if (clients[x[1]])
+                send(clients[x[1]], 'alert', ['timed out:',
+                  to > 60e3 ? Math.floor(to / 60e3) + 'm' : Math.floor(to / 1e3) + 's']);
 
               break;
             case 'del':
