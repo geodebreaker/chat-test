@@ -392,7 +392,7 @@ wss.on('connection', (ws) => {
 
             getAllUsers().then(x =>
               x.map(x =>
-                send(ws, 'alert', [(x[2] ? 'on' : 'off') + 'line:', x[1]])
+                send(ws, 'alert', [(x[1] ? 'on' : 'off') + 'line:', x[0]])
               )
             );
           } else if (ws.room == '?find') {
