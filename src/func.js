@@ -129,6 +129,8 @@ function styles(x, y) {
       return `<${x}>${y.join(',')}</${x}>`;
     case 'c':
       return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
+    case 'uc':
+      return `<span style="color:${colorhash(y.shift())};">${y.join(',')}</span>`;
     case 'h':
       return `<span style="background-color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
   }
@@ -198,7 +200,6 @@ function parseCmd(value) {
 
     if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
     if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
-      console.warn('PUSHING ' + StringConstruct);
       args.push(StringConstruct);
       StringConstruct = '';
     } else if (!IsQuote && char != '\\') StringConstruct += char;
@@ -210,29 +211,20 @@ function parseCmd(value) {
 
 }
 
-const cmdHandlers = {
-  help: (resolve, reject, args) => {
-    resolve('command info:\n' +
-      '/help: get command info\n' +
-      '/test: test command. serves no purpose'
-    );
-  },
-  test: (resolve, reject, args) => {
-    resolve('hi');
-  }
-}
-
 function handleCmd(cmd, args) {
-
-  const status = new Promise((resolve, reject) => {
-
-    const handler = cmdHandlers[cmd];
-    if (typeof(handler) === "function") {
-      handler(resolve, reject, args);
-    } else reject(`command '${cmd}' not found. use '/help' for a list of commands.`);
-  
+  return new Promise((res, rej) => {
+    switch (cmd) {
+      case 'help':
+        res('commands:\n' +
+          'help: prints this message\n' +
+          'test: test function')
+        break;
+      case 'test':
+        res('hi!');
+        break;
+      default:
+        rej(`command not found "${cmd}"`)
+        break;
+    }
   });
-
-  return status;
-
 }
