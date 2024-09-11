@@ -209,3 +209,24 @@ function parseCmd(value) {
   return { cmd, args };
 
 }
+
+const cmdHandlers = {
+  test: (resolve, reject, args) => {
+    resolve('hi');
+  }
+}
+
+function handleCmd(cmd, args) {
+
+  const status = new Promise((resolve, reject) => {
+
+    const handler = cmdHandlers[cmd];
+    if (typeof(handler) === "function") {
+      handler(resolve, reject, args);
+    } else reject(`command ${cmd} not found or no function for it exists`);
+  
+  });
+
+  return status;
+
+}

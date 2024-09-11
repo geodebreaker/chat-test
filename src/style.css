@@ -135,7 +135,7 @@ body>*:not(#login, #menu, #rclick, .img) {
 }
 
 .good {
-  color: green;
+  color: #0c0;
 }
 
 #menu {
