@@ -5,6 +5,7 @@ function init() {
   if (window.localStorage && localStorage.un) {
     un = localStorage.un;
     $('#username').value = un;
+    $('#username').style.color = colorhash($('#username').value);
     $('#password').value = localStorage.pw;
     room = window.location.hash.replace('#', '') || localStorage.room;
     $('#room').value = room;
@@ -70,13 +71,14 @@ function send(value) {
       handleCmd(parsedCmd.cmd, parsedCmd.args)
       .then(
         (successMsg) => {
-          mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
+          if (!successMsg) mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
         },
         (failMsg) => {
           mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
         }
       );
     } else { //message
+      value = emoteFormat(value);
       var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
       ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
       mkmsg(un, value, id, Date.now(), tag);
