@@ -121,6 +121,30 @@ function fromUserCache(type, value, newType) {
   });
 }
 
+function getTopRooms() {
+  return new Promise((y, n) => {
+    var sql = "SELECT room, COUNT(*) AS cnt, "+
+    "COUNT(*) - (TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), MAX(date)) / 300000) AS rnk " +
+      "FROM msg WHERE room NOT LIKE '!%' AND room NOT LIKE '?%' GROUP BY room ORDER BY rnk DESC LIMIT 10";
+    conn.query(sql, (error, results) => {
+      if (error)
+        return n(error);
+      y(results.map(x => [x.room, x.cnt]));
+    });
+  });
+}
+
+function getAllUsers(){
+  return new Promise((y, n) => {
+    var sql = "SELECT un FROM users";
+    conn.query(sql, (error, results) => {
+      if (error)
+        return n(error);
+      y(results.map(x => [x.un, clients[un] != undefined]));
+    });
+  });
+}
+
 function getUser(id) {
   return fromUserCache('id', id, 'un');
 }
@@ -249,9 +273,7 @@ setInterval(() => {
 }, 3 * 60e3)
 
 function makeDmRoom(room, un) {
-  var r = room.replace('!', '').split(',');
-  r.push(un);
-  r.filter((x, i, a) => a.indexOf(x) == i).sort();
+  var r = room.replace('!', '').split(',').concat([un]).filter((x, i, a) => a.indexOf(x) == i).sort();
   return ['!' + r.join(','), r.filter(x => x != un)];
 }
 
@@ -345,11 +367,40 @@ wss.on('connection', (ws) => {
         console.log(`${ws.un} logged into room ${ws.room}`);
         clients[ws.un] = ws;
         if (ws.room.startsWith('?')) {
-          if (ws.room == '?notif') {
+          if (ws.room == '?') {
+            send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+
+            ['',
+              '^b,^i,^u,WELCOME TO THE HOMEPAGE;;; (its a little dissapointing)', '',
+              '^ls,#,main channel; (post here)', '',
+              '^ls,#?find; find rooms',
+              '^ls,#?notif; notifications',
+              '^ls,#?users; users', '',
+              '^ls,#rules; (please read)',
+              '^ls,#help; (feel free to ask and ping mods!)',
+              '^ls,#ideas; (please add any ideas you get)',
+            ].map(x =>
+              send(ws, 'alert', ['', x])
+            );
+          } else if (ws.room == '?notif') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
 
             JSON.parse(await getUserData(ws.uid, 'notif') || '[]').reverse().map(x =>
-              send(ws, 'alert', [x[2] + ':', '^ls,#' + x[1] + ';']));
+              send(ws, 'alert', [x[2] + ':', '^ls,#' + x[1].replace(/,/g, '\\,') + ';']));
+          } else if (ws.room == '?users') {
+            send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+
+            await getAllUsers().map(x =>
+              send(ws, 'alert', [(x[2] ? 'on' : 'off') + 'line:', x[1]]));
+          } else if (ws.room == '?find') {
+            send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+
+            getTopRooms().then(x =>
+              x.map(x =>
+                send(ws, 'alert', [x[1] + ':', '^ls,#' + x[0].replace(/,/g, '\\,') +
+                  (x[0] == '' ? ',(main)' : '') + ';'])
+              )
+            );
           } else {
             send(ws, 'li', [false, 'invalid util room']);
           }

@@ -35,6 +35,8 @@ function init() {
     leave(true);
   };
   $('#libtn').onclick = x => login();
+  $('#homebtn').onclick = x => { $('#room').value = '?'; login(); };
+  $('#mainbtn').onclick = x => { $('#room').value = ''; login(); };
   $('#openmenu').onclick = x => {
     menuopen = !menuopen;
     $('body').style.gridTemplateAreas =
@@ -114,7 +116,7 @@ function mkalert(type, data, un, tag, x) {
   m.innerText = data;
   m.className = type ? 'bad' : 'good';
 
-  var u = !x ? genTag(un, tag) : {outerHTML: styleMsg(un)};
+  var u = !x ? genTag(un, tag) : { outerHTML: styleMsg(un) };
 
   var c = document.createElement('span');
   c.innerHTML = m.outerHTML + u.outerHTML + '<br>';
@@ -122,7 +124,8 @@ function mkalert(type, data, un, tag, x) {
   $('#chat').appendChild(c);
   updateChat();
 
-  playPing();
+  if (!room.startsWith('?')) 
+    playPing();
   if (!ontab()) {
     notif++;
     updateTitle();
