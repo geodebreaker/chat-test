@@ -76,10 +76,10 @@ function send(value) {
       handleCmd(parsedCmd.cmd, parsedCmd.args)
       .then(
         (successMsg) => {
-          mkalert(false, parsedCmd.cmd + ': ', successMsg);
+          mkalert(false, '> ' + parsedCmd.cmd + ': ', successMsg);
         },
         (failMsg) => {
-          mkalert(true, parsedCmd.cmd + ': ', failMsg);
+          mkalert(true, '> ' + parsedCmd.cmd + ': ', failMsg);
         }
       );
 
