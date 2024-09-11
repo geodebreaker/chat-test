@@ -77,7 +77,7 @@ function rclick(event) {
 }
 
 function clickLink(ev, t) {
-  if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}"`))
+  if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}?"`))
     ev.preventDefault();
 }
 
@@ -222,9 +222,22 @@ function handleCmd(cmd, args) {
       case 'test':
         res('hi!');
         break;
+      case 'goto':
+        const roomName = args[0];
+        (roomName) ? window.location.href = '/#' + roomName : window.location.href = '/#';
+        res();
       default:
         rej(`command not found "${cmd}"`)
         break;
     }
   });
+}
+
+function emoteFormat(x) {
+  const emotes = {
+    mood: 'http://raw.githubusercontent.com/geodebreaker/mystuff/main/mood.jpg',
+    goober: 'http://evrtdg.com/goober.jpg'
+  };
+  for (const [name, source] of Object.entries(emotes)) x = x.replaceAll(`:${name}:`, `^p,${source};`);
+  return x;
 }
