@@ -65,11 +65,14 @@ var userlist = [];
 function send(value) {
   if (value != '') {
 
-    const is_cmd = value.startsWith('/');
-    if (is_cmd) {
+    const isCmd = value.startsWith('/');
+    if (isCmd) {
 
       // command functionality to add later
+      const parsedCmd = parseCmd(value);
+
       $('#msg').value = '';
+      mkalert(false, 'sent command: ', parsedCmd.cmd);
 
     } else {
 
