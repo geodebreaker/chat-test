@@ -77,7 +77,7 @@ function rclick(event) {
 }
 
 function clickLink(ev, t) {
-  if (!confirm(`Do you want to go to "${t}"`))
+  if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}"`))
     ev.preventDefault();
 }
 
