@@ -123,8 +123,8 @@ function fromUserCache(type, value, newType) {
 
 function getTopRooms() {
   return new Promise((y, n) => {
-    var sql = "SELECT room, COUNT(*) AS cnt, "+
-    "COUNT(*) - (TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), MAX(date)) / 300000) AS rnk " +
+    var sql = "SELECT room, COUNT(*) AS cnt, " +
+      "COUNT(*) - (TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), MAX(date)) / 300000) AS rnk " +
       "FROM msg WHERE room NOT LIKE '!%' AND room NOT LIKE '?%' GROUP BY room ORDER BY rnk DESC LIMIT 10";
     conn.query(sql, (error, results) => {
       if (error)
@@ -134,7 +134,7 @@ function getTopRooms() {
   });
 }
 
-function getAllUsers(){
+function getAllUsers() {
   return new Promise((y, n) => {
     var sql = "SELECT un FROM users";
     conn.query(sql, (error, results) => {
@@ -390,8 +390,11 @@ wss.on('connection', (ws) => {
           } else if (ws.room == '?users') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
 
-            await getAllUsers().map(x =>
-              send(ws, 'alert', [(x[2] ? 'on' : 'off') + 'line:', x[1]]));
+            getAllUsers().then(x =>
+              x.map(x =>
+                send(ws, 'alert', [(x[2] ? 'on' : 'off') + 'line:', x[1]])
+              )
+            );
           } else if (ws.room == '?find') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
 
