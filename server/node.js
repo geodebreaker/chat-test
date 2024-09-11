@@ -384,11 +384,13 @@ wss.on('connection', (ws) => {
             );
           } else if (ws.room == '?notif') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+            send(ws, 'alert', ['', '^ls,#?,back to homepage;']);
 
             JSON.parse(await getUserData(ws.uid, 'notif') || '[]').reverse().map(x =>
-              send(ws, 'alert', [x[2] + ':', '^ls,#' + x[1].replace(/,/g, '\\,') + ';']));
+              send(ws, 'alert', [x[2] + ':', '^ls,#' + x[1].replace(/,/g, '\\,') + ';', true, true]));
           } else if (ws.room == '?users') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+            send(ws, 'alert', ['', '^ls,#?,back to homepage;']);
 
             getAllUsers().then(x =>
               x.map(x =>
@@ -397,6 +399,7 @@ wss.on('connection', (ws) => {
             );
           } else if (ws.room == '?find') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
+            send(ws, 'alert', ['', '^ls,#?,back to homepage;']);
 
             getTopRooms().then(x =>
               x.map(x =>
