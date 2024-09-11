@@ -81,7 +81,7 @@ function login() {
         eval(x);
         break;
       case 'alert':
-        mkalert(true, x[0] + ' ', x[1], 0, x[2] ?? true);
+        mkalert(!x[3] ?? true, x[0] + ' ', x[1], 0, x[2] ?? true);
         break;
       case 'roommsg':
         roomMsg(x);
