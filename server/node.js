@@ -140,7 +140,7 @@ function getAllUsers(){
     conn.query(sql, (error, results) => {
       if (error)
         return n(error);
-      y(results.map(x => [x.un, clients[un] != undefined]));
+      y(results.map(x => [x.un, clients[x.un] != undefined]));
     });
   });
 }
