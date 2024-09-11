@@ -40,15 +40,20 @@ function login() {
             $('#roomdisplay').innerText = room;
             tag = x[1];
             updateTitle();
+            var hr = room.startsWith('?') && !((x[1] == -1 || x[1] > 1) && room == '?ban');
             $('#lilog').innerText = '[===]';
             $('#msg').style.visibility =
               $('#send').style.visibility =
-              room.startsWith('?') ? 'hidden' : 'visible';
+              hr ? 'hidden' : 'visible';
+            if (!hr)
+              $('#msg').focus();
           }, 100)
         } else {
+          $('#login').showPopover();
+          lifail = true;
+          ws.close();
           $('#lilog').style.color = 'red';
           $('#lilog').innerText = 'failed to sign in: ' + x[1];
-          lifail = true;
         }
         break;
       case 'msg':
@@ -101,18 +106,20 @@ function login() {
     }))
   };
   ws.onclose = (x) => {
-    if (loggedin) {
-      if (attempts > 4 || $('#login:popover-open')) {
-        $('#login').showPopover();
-        $('#login div').innerText = 'disconnected. please reload';
-        loggedin = false;
-        updateTitle();
+    if (lifail == false) {
+      if (loggedin) {
+        if (attempts > 4 || $('#login:popover-open')) {
+          $('#login').showPopover();
+          $('#login div').innerText = 'disconnected. please reload';
+          loggedin = false;
+          updateTitle();
+        }
+      } else if (loggedin !== null) {
+        $('#lilog').innerText = 'failed to sign in: failed to connect to server';
+        attempts++;
+        leave();
+        login();
       }
-    } else if (loggedin !== null) {
-      $('#lilog').innerText = 'failed to sign in: failed to connect to server';
-      attempts++;
-      leave();
-      login();
     }
   }
 }

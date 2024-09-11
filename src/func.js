@@ -85,12 +85,13 @@ function clickLink(ev, t) {
 function styleMsg(x) {
   var y = x
     .replace(/(?<=^| )@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
+    .replace(/(?<=^| )#(\S{1,64})/g, (x, y) => '^ls,#' + y + ';')
     .replace(/!/g, '!!')
     .replace(/[<&"]/g, x => '!' + x);
   var z = '';
   var l = [];
   for (var i = 0; i < y.length; i++) {
-    if (y[i] == '\\') {
+    if (y[i] == '\\' && y[i + 1] != ',') {
       z += y[++i] ?? '';
     } else if (y[i] == '^') {
       l.push(z);
