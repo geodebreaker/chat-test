@@ -46,16 +46,12 @@ function getRoomData(room) {
   return new Promise((y, n) => {
     const sql = 'SELECT * FROM msg WHERE room=?';
     conn.query(sql, [room], async (error, results) => {
+      var dat = (await Promise.all(results.map(async x => ({
+        date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id,
+        tag: await getUserTag(x.user), ban: await getUserData(x.user, 'ban')
+      })))).sort((a, b) => a.date - b.date);
       console.log(`Got room data for room ${room}`)
-      y(
-        /*await compress(JSON.stringify(*/(await Promise.all(results
-        .map(async x => (
-          {
-            date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id,
-            tag: await getUserTag(x.user), ban: await getUserData(x.user, 'ban')
-          }))
-      )).sort((a, b) => a.date - b.date)/*))*/
-      );
+      y(dat);
     });
   });
 }
@@ -375,14 +371,14 @@ wss.on('connection', (ws) => {
               '^ls,#,main channel; (post here)', '',
               '^ls,#?find; find rooms',
               '^ls,#?notif; notifications',
-              '^ls,#?users; users','',
+              '^ls,#?users; users', '',
               '^ls,#rules; (please read)',
               '^ls,#help; (feel free to ask and ping mods!)',
-              '^ls,#ideas; (please add any ideas you get)','',
+              '^ls,#ideas; (please add any ideas you get)', '',
             ].concat(ws.ban || ws.tag > 1 ? ['^ls,#?ban; banned users page (FOR MODS OR BANNED USERS)'] : [])
-            .map(x =>
-              send(ws, 'alert', ['', x])
-            );
+              .map(x =>
+                send(ws, 'alert', ['', x])
+              );
           } else if (ws.room == '?notif') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
             send(ws, 'alert', ['', '^ls,#?,back to homepage;']);
@@ -457,7 +453,7 @@ wss.on('connection', (ws) => {
               var uid = await fromUsername(z);
               if (!uid) return;
               var rm = ws.otherroom ? '!' + ws.otherroom.filter(x => x != z).join(',') : ws.room;
-              if(clients[z] && clients[z].room != ws.room) 
+              if (clients[z] && clients[z].room != ws.room)
                 send(clients[z], 'alert', ['pinged:', `by @${ws.un} in ^ls,#${rm};`, true, true]);
               setUserData(uid, 'notif', JSON.stringify(JSON.parse(
                 await getUserData(uid, 'notif') || '[]').concat(

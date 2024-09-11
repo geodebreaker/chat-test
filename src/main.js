@@ -64,35 +64,23 @@ var userlist = [];
 
 function send(value) {
   if (value != '') {
-
-    const isCmd = value.startsWith('/');
-    if (isCmd) {
-
-      // command functionality
-      // todo: figure out why the alert is bold and random colors depending on the message (geo will probably know why)
-      $('#msg').value = '';
-
+    $('#msg').value = '';
+    if (value.startsWith('/')) { //command
       const parsedCmd = parseCmd(value);
       handleCmd(parsedCmd.cmd, parsedCmd.args)
       .then(
         (successMsg) => {
-          mkalert(false, '> ' + parsedCmd.cmd + ': ', successMsg);
+          mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
         },
         (failMsg) => {
-          mkalert(true, '> ' + parsedCmd.cmd + ': ', failMsg);
+          mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
         }
       );
-
-    } else {
-
-      // normal message
+    } else { //message
       var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
       ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
       mkmsg(un, value, id, Date.now(), tag);
-      $('#msg').value = '';
-
     }
-
   }
 }
 
