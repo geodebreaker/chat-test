@@ -130,7 +130,7 @@ function styles(x, y) {
     case 'c':
       return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
     case 'uc':
-      return `<span style="color:${colorhash(y.shift())};">${y.join(',')}</span>`;
+      return `<span style="color:${colorhash(y.join(','))};">${y.join(',')}</span>`;
     case 'h':
       return `<span style="background-color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
   }
