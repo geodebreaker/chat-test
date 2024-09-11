@@ -54,6 +54,7 @@ var un;
 var room;
 var tag = 0;
 var notif = 0;
+var ban = false;
 var lastping = 0;
 var loggedin = false;
 var menuopen = false;
