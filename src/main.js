@@ -68,11 +68,20 @@ function send(value) {
     const isCmd = value.startsWith('/');
     if (isCmd) {
 
-      // command functionality to add later
-      const parsedCmd = parseCmd(value);
-
+      // command functionality
+      // todo: figure out why the alert is bold and random colors depending on the message (geo will probably know why)
       $('#msg').value = '';
-      mkalert(false, 'sent command: ', parsedCmd.cmd);
+
+      const parsedCmd = parseCmd(value);
+      handleCmd(parsedCmd.cmd, parsedCmd.args)
+      .then(
+        (successMsg) => {
+          mkalert(false, parsedCmd.cmd + ': ', successMsg);
+        },
+        (failMsg) => {
+          mkalert(true, parsedCmd.cmd + ': ', failMsg);
+        }
+      );
 
     } else {
 
