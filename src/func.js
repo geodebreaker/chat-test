@@ -211,6 +211,12 @@ function parseCmd(value) {
 }
 
 const cmdHandlers = {
+  help: (resolve, reject, args) => {
+    resolve('command info:\n' +
+      '/help: get command info\n' +
+      '/test: test command. serves no purpose'
+    );
+  },
   test: (resolve, reject, args) => {
     resolve('hi');
   }
@@ -223,7 +229,7 @@ function handleCmd(cmd, args) {
     const handler = cmdHandlers[cmd];
     if (typeof(handler) === "function") {
       handler(resolve, reject, args);
-    } else reject(`command ${cmd} not found or no function for it exists`);
+    } else reject(`command '${cmd}' not found. use '/help' for a list of commands.`);
   
   });
 
