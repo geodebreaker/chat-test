@@ -218,7 +218,7 @@ async function loadmoremsg() {
   var a = 300;
 
   var x = loadmsg.splice(loadmsg.length - a, a).reverse();
-  x.map(y => mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true));
+  x.map(y => new Promise((x)=>x(mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true))));
   if (loadmsg.length == 0 && $('#loadmsg'))
     $('#loadmsg').remove();
   return;
