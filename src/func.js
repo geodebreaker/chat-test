@@ -6,7 +6,7 @@ function fmtDate(ms) {
   var x = new Date(parseInt(ms));
   var y = x.getHours() % 12;
   var z = x.getMinutes().toString();
-  return `${x.getMonth() + 1}/${x.getDay() + 1}/${x.getFullYear()} ` +
+  return `${x.getMonth() + 1}/${x.getDate() + 1}/${x.getFullYear()} ` +
     `${y == 0 ? 12 : y}:${z.length == 1 ? '0' + z : z} ${x.getHours() > 11 ? 'PM' : 'AM'}`;
 }
 
@@ -235,11 +235,21 @@ function handleCmd(cmd, args) {
         login();
         res();
       case 'setpopup':
-        ws.send(JSON.stringify({ setpopup: args[0] }));
+        ws.send(JSON.stringify({ mod: [ 'setpopup', args[0] ]}));
         break;
       case 'stats':
         statsret = res;
-        ws.send(JSON.stringify({ stats: args[0] }));
+        ws.send(JSON.stringify({ mod: [ 'stats', args[0] ]}));
+        break;
+      case 'ban':
+        ws.send(JSON.stringify({ mod: [ 'stats', args[0] ]}));
+        res('attempted to ban ' + args[0])
+        break;
+      case 'to':
+        if(parseFloat(args[1]) == NaN)
+          rej('error: invalid time');
+        ws.send(JSON.stringify({ mod: [ 'to', args[0], parseFloat(args[1]) * 60e3 ]}));
+        res('attempted to timeout ' + args[0] + ' for ' + args[1] + 'm')
         break;
       default:
         rej(`command not found "${cmd}"`)
