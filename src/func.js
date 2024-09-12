@@ -239,6 +239,10 @@ function emoteFormat(x) {
     mood: 'http://raw.githubusercontent.com/geodebreaker/mystuff/main/mood.jpg',
     goober: 'http://evrtdg.com/goober.jpg'
   };
-  for (const [name, source] of Object.entries(emotes)) x = x.replaceAll(`:${name}:`, `^p,${source};`);
+  for (const [name, source] of Object.entries(emotes)) x = x
+  .replaceAll(`\\:${name}:`, `:\\${name}:`)
+  .replaceAll(`:${name}:`, `^p,${source};`)
+  .replaceAll(`:\\${name}:`, `:${name}:`);
+
   return x;
 }
