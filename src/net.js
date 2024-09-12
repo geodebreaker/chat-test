@@ -30,8 +30,8 @@ function login() {
     switch (y) {
       case 'li':
         if (x[0]) {
-          $('#msg').style.visibility =
-            $('#send').style.visibility = 'hidden';
+          // $('#msg').style.visibility =
+          //   $('#send').style.visibility = 'hidden';
           $('#lilog').innerText = '[==-]';
           setTimeout(async () => {
             attempts = 0;
@@ -101,6 +101,7 @@ function login() {
         break;
       case 'popup':
         $('#alertcon').style.display = 'block';
+        alert(x);
         $('#alert').innerHTML = styleMsg(x);
         break;
       case 'stats':
