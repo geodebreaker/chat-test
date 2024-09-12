@@ -60,6 +60,7 @@ var lastping = 0;
 var loggedin = false;
 var menuopen = false;
 var userlist = [];
+var loadmsg = [];
 
 
 
