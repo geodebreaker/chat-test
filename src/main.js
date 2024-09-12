@@ -71,7 +71,7 @@ function send(value) {
       handleCmd(parsedCmd.cmd, parsedCmd.args)
       .then(
         (successMsg) => {
-          if (!successMsg) mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
+          if (successMsg) mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
         },
         (failMsg) => {
           mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
