@@ -40,7 +40,9 @@ function login() {
             $('#roomdisplay').innerText = room;
             tag = x[1];
             updateTitle();
-            var hr = room.startsWith('?') && !((x[1] == -1 || x[1] > 1) && room == '?ban');
+            var hr = room.startsWith('?') 
+            && !((x[1] == -1 || x[1] > 1) && room == '?ban') 
+            && !(room == '?mod' && (x[1] > 1));
             $('#lilog').innerText = '[===]';
             $('#msg').style.visibility =
               $('#send').style.visibility =
