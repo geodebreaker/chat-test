@@ -101,8 +101,7 @@ function login() {
         break;
       case 'popup':
         $('#alertcon').style.display = 'block';
-        alert(x);
-        $('#alert').innerHTML = styleMsg(x);
+        $('#alert').innerHTML = styleMsg(x[2]);
         break;
       case 'stats':
         if(statsret)
