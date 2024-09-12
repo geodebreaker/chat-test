@@ -175,6 +175,19 @@ function getUserData(id, val) {
   return fromUserCache('id', id, val);
 }
 
+async function stats(id){
+  var cli = clients[await getUser(id)] ?? {};
+  return {
+    id: id,
+    un: getUserData(id, 'un'),
+    tag: getUserData(id, 'perm'),
+    banned: getUserData(id, 'ban'),
+    timeout: getUserData(id, 'tiemout'),
+    online: !!cli,
+    room: cli.room,
+  };
+}
+
 
 
 const svr = http.createServer((req, res) => {
@@ -362,7 +375,9 @@ wss.on('connection', (ws) => {
           emit('connect', [ws.un, ws.tag], ws.room, ws.un);
         console.log(`${ws.un} logged into room ${ws.room}`);
         clients[ws.un] = ws;
-        if (ws.room.startsWith('?') && !(ws.room == '?ban' && (ws.ban || ws.tag > 1))) {
+        if (ws.room.startsWith('?')
+          && !(ws.room == '?ban' && (ws.ban || ws.tag > 1))
+          && !(ws.room == '?mod' && (ws.tag > 1))) {
           if (ws.room == '?') {
             send(ws, 'li', [true, ws.ban ? -1 : ws.tag, []]);
 
@@ -374,8 +389,10 @@ wss.on('connection', (ws) => {
               '^ls,#?users; users', '',
               '^ls,#rules; (please read)',
               '^ls,#help; (feel free to ask and ping mods!)',
-              '^ls,#ideas; (please add any ideas you get)', '',
+              '^ls,#ideas; (please add any ideas you get)',
+              '^ls,#bugs; (please say if you find any)', '',
             ].concat(ws.ban || ws.tag > 1 ? ['^ls,#?ban; banned users page (FOR MODS OR BANNED USERS)'] : [])
+              .concat(ws.tag > 1 ? ['^ls,#?mod; moderator chat'] : [])
               .map(x =>
                 send(ws, 'alert', ['', x])
               );
@@ -484,10 +501,9 @@ wss.on('connection', (ws) => {
             case 'ban':
 
               var id = await fromUsername(x[1]);
-              if (!id)
-                return;
-              if (await getUserData(id, 'tag') > 1)
-                return;
+              if (!id) return;
+              var tag = await getUserData(id, 'tag');
+              if(tag >= ws.tag) return;
               var b = await getUserData(id, 'ban');
               setUserData(id, 'ban', !b);
               emit('alert', ['user ' + (b ? 'un' : '') + 'banned:', x[1], false], ws.room);
@@ -496,10 +512,9 @@ wss.on('connection', (ws) => {
             case 'to':
 
               var id = await fromUsername(x[1]);
-              if (!id)
-                return;
-              if (await getUserData(id, 'tag') > 1)
-                return;
+              if (!id) return;
+              var tag = await getUserData(id, 'tag');
+              if(tag >= ws.tag) return;
               var to = now + x[2];
               setUserData(ws.uid, 'timeout', now + x[2]);
               if (clients[x[1]])
@@ -512,11 +527,18 @@ wss.on('connection', (ws) => {
               delMsg(x[1], ws.room)
 
               break;
+            case 'stats':
+
+              var id = await fromUsername(x[1]);
+              if (!id) return;
+              
+
+              break;
           }
 
         break;
       case 'runjs':
-        if (ws.tag > 2)
+        if (ws.tag > 1)
           emit('runjs', x, ws.room, ws.un);
         break;
     }
