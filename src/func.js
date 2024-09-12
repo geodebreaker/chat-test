@@ -217,7 +217,8 @@ function handleCmd(cmd, args) {
       case 'help':
         res('commands:\n' +
           'help: prints this message\n' +
-          'test: test function')
+          'test: test function\n' +
+          'goto [room?]: goto the given room. if no room is provided it\'ll bring you to the main room');
         break;
       case 'test':
         res('hi!');
