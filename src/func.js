@@ -237,7 +237,10 @@ function handleCmd(cmd, args) {
 function emoteFormat(x) {
   const emotes = {
     mood: 'http://raw.githubusercontent.com/geodebreaker/mystuff/main/mood.jpg',
-    goober: 'http://evrtdg.com/goober.jpg'
+    goober: 'http://evrtdg.com/goober.jpg',
+    horror: 'http://raw.githubusercontent.com/mhgits/mystuff/main/horror.jpg',
+    nohorror: 'http://raw.githubusercontent.com/mhgits/mystuff/main/nohorror.jpg',
+    clueless: 'http://raw.githubusercontent.com/mhgits/mystuff/main/clueless.jpg'
   };
   for (const [name, source] of Object.entries(emotes)) x = x
   .replaceAll(`\\:${name}:`, `:\\${name}:`)
