@@ -36,21 +36,22 @@ function login() {
           setTimeout(async () => {
             attempts = 0;
             loggedin = true;
-            await roomMsg(x[2], true);
-            $('#login').hidePopover();
-            $('#undisplay').innerHTML = genTag(un, x[1]).outerHTML;
-            $('#roomdisplay').innerText = room;
-            tag = x[1];
-            updateTitle();
-            var hr = room.startsWith('?')
-              && !((x[1] == -1 || x[1] > 1) && room == '?ban')
-              && !(room == '?mod' && (x[1] > 1));
-            $('#lilog').innerText = '[===]';
-            $('#msg').style.visibility =
-              $('#send').style.visibility =
-              hr ? 'hidden' : 'visible';
-            if (!hr)
-              $('#msg').focus();
+            roomMsg(x[2], true).then(() => {
+              $('#login').hidePopover();
+              $('#undisplay').innerHTML = genTag(un, x[1]).outerHTML;
+              $('#roomdisplay').innerText = room;
+              tag = x[1];
+              updateTitle();
+              var hr = room.startsWith('?')
+                && !((x[1] == -1 || x[1] > 1) && room == '?ban')
+                && !(room == '?mod' && (x[1] > 1));
+              $('#lilog').innerText = '[===]';
+              $('#msg').style.visibility =
+                $('#send').style.visibility =
+                hr ? 'hidden' : 'visible';
+              if (!hr)
+                $('#msg').focus();
+            }, x=>alert(x));
           }, 100)
         } else {
           $('#login').showPopover();
@@ -220,6 +221,7 @@ async function loadmoremsg() {
   x.map(y => mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true));
   if (loadmsg.length == 0)
     $('#loadmsg').remove();
+  return;
 }
 
 document.addEventListener('keypress', (e) => {
