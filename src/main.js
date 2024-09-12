@@ -72,14 +72,14 @@ function send(value) {
       handleCmd(parsedCmd.cmd, parsedCmd.args)
       .then(
         (successMsg) => {
-          if (successMsg) mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
+          if (successMsg) 
+            mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
         },
         (failMsg) => {
           mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
         }
       );
     } else { //message
-      value = emoteFormat(value);
       var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
       ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
       mkmsg(un, value, id, Date.now(), tag);
@@ -92,7 +92,7 @@ function recv(value) {
   playPing();
 }
 
-function mkmsg(from, data, id, date, tag, x) {
+function mkmsg(from, data, id, date, tag, x, y) {
   var u = genTag(from, tag, true);
 
   var m = document.createElement('span');
@@ -106,7 +106,10 @@ function mkmsg(from, data, id, date, tag, x) {
   c.dataset.user = from;
   c.innerHTML = u.outerHTML + m.outerHTML + '<br>';
 
-  $('#chat').appendChild(c);
+  if(y)
+    $('#loadmsg').insertAdjacentElement('afterend', c);
+  else
+    $('#chat').appendChild(c);
   updateChat();
 
   if (!ontab() && !x) {
@@ -137,7 +140,8 @@ function mkalert(type, data, un, tag, x) {
 }
 
 function updateChat() {
-  $('#chat').scrollTop = $('#chat').scrollHeight;
+  // if($('#chat').scrollTop > 0 || $('#chat').scrollHeight < 100)
+    $('#chat').scrollTop = $('#chat').scrollHeight;
 }
 
 function updateMenu() {

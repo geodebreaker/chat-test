@@ -16,6 +16,8 @@ function login() {
     localStorage.room = room;
     localStorage.pw = pw;
   }
+  if (ws)
+    ws.close();
   ws = new WebSocket(
     (window.location.protocol == 'https:' ? 'wss://' : 'ws://') + (window.notproxy ? window.location.host : 'ws://evrtdg.com')
   );
@@ -40,9 +42,9 @@ function login() {
             $('#roomdisplay').innerText = room;
             tag = x[1];
             updateTitle();
-            var hr = room.startsWith('?') 
-            && !((x[1] == -1 || x[1] > 1) && room == '?ban') 
-            && !(room == '?mod' && (x[1] > 1));
+            var hr = room.startsWith('?')
+              && !((x[1] == -1 || x[1] > 1) && room == '?ban')
+              && !(room == '?mod' && (x[1] > 1));
             $('#lilog').innerText = '[===]';
             $('#msg').style.visibility =
               $('#send').style.visibility =
@@ -95,6 +97,14 @@ function login() {
         break;
       case 'sli':
         $('#lilog').innerText = '[=--]';
+        break;
+      case 'popup':
+        $('#alertcon').style.display = 'block';
+        $('#alert').innerHTML = styleMsg(x);
+        break;
+      case 'stats':
+        if(statsret)
+          statsret(JSON.stringify(x));
         break;
     }
   };
@@ -193,28 +203,23 @@ async function decompress(compressedStr) {
   return new TextDecoder().decode(decompressed);
 }
 
-function roomMsg(z, a) {
-  var b = 100;
-  var x = z;
-  var l = Math.ceil(z.length / b);
-  var c = 0;
-  return new Promise((y) => {
-    if (!room.startsWith('?'))
-      $('#chat').innerText = '';
-    var fn = () => {
-      c++;
-      x.splice(0, 100).map(m => mkmsg(m.user, m.text, m.id, m.date, m.ban ? -1 : m.tag, true));
-      if (a) {
-        try {
-          $('#lilog').innerText = '[==-] [' + '='.repeat(c) + '-'.repeat(l - c) + ']';
-        } catch (e) { }
-      }
-      if (x.length == 0)
-        return y();
-      setTimeout(fn);
-    };
-    fn();
-  });
+async function roomMsg(z, a) {
+  loadmsg = z;
+
+  if (!room.startsWith('?') || room == '?mod' || room == '?ban')
+    $('#chat').innerHTML = loadmsgbtn;
+
+  await loadmoremsg();
+  return;
+}
+
+async function loadmoremsg() {
+  var a = 300;
+
+  var x = loadmsg.splice(loadmsg.length - a, a).reverse();
+  x.map(y => mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true));
+  if (loadmsg.length == 0)
+    $('#loadmsg').remove();
 }
 
 document.addEventListener('keypress', (e) => {
@@ -233,4 +238,6 @@ document.addEventListener('keypress', (e) => {
     } else
       ws.send(JSON.stringify({ runjs: c }));
   }
-})
+});
+
+var loadmsgbtn = '<div id="loadmsg" onclick="loadmoremsg()">load more</div>';

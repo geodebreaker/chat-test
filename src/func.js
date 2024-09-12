@@ -12,7 +12,11 @@ function fmtDate(ms) {
 
 function colorhash(x) {
   var r = x => parseInt(('' + x).split('').reverse().join(''));
-  var w = x.split('');
+  try {
+    var w = x.split('');
+  } catch (e) {
+    return 'white';
+  }
   var y = 0;
   for (var z of w) {
     y += z.charCodeAt(0);
@@ -83,7 +87,7 @@ function clickLink(ev, t) {
 
 
 function styleMsg(x) {
-  var y = x
+  var y = styleEmote(x)
     .replace(/(?<=^| )@(\S{2,12})/g, (x, y) => '^ls,#!' + y + ',@' + y + ';')
     .replace(/(?<=^| )#(\S{1,64})/g, (x, y) => '^ls,#' + y + ';')
     .replace(/!/g, '!!')
@@ -121,7 +125,8 @@ function styles(x, y) {
         }" href="${href}">${y[1] ?? y[0]
         }</a>`);
     case 'p':
-      return `<img src="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')}" class="img">`;
+      return (
+        `<img src="${y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://')}" class="img${y[1] == 'emote' ? ' emote' : ''}">`);
     case 'b':
     case 'i':
     case 'u':
@@ -130,7 +135,7 @@ function styles(x, y) {
     case 'c':
       return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
     case 'uc':
-      return `<span style="color:${colorhash(y.join(','))};">${y.join(',')}</span>`;
+      return `<span style="color:${colorhash(y.shift())};">${y.join(',')}</span>`;
     case 'h':
       return `<span style="background-color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
   }
@@ -225,8 +230,17 @@ function handleCmd(cmd, args) {
         break;
       case 'goto':
         const roomName = args[0];
-        (roomName) ? window.location.href = '/#' + roomName : window.location.href = '/#';
+        $('#room').value = roomName ?? '';
+        leave();
+        login();
         res();
+      case 'setpopup':
+        ws.send(JSON.stringify({ setpopup: args[0] }));
+        break;
+      case 'stats':
+        statsret = res;
+        ws.send(JSON.stringify({ stats: args[0] }));
+        break;
       default:
         rej(`command not found "${cmd}"`)
         break;
@@ -234,18 +248,17 @@ function handleCmd(cmd, args) {
   });
 }
 
-function emoteFormat(x) {
-  const emotes = {
+function styleEmote(x) {
+  const emo = {
     mood: 'http://raw.githubusercontent.com/geodebreaker/mystuff/main/mood.jpg',
     goober: 'http://evrtdg.com/goober.jpg',
     horror: 'http://raw.githubusercontent.com/mhgits/mystuff/main/horror.jpg',
     nohorror: 'http://raw.githubusercontent.com/mhgits/mystuff/main/nohorror.jpg',
     clueless: 'http://raw.githubusercontent.com/mhgits/mystuff/main/clueless.jpg'
   };
-  for (const [name, source] of Object.entries(emotes)) x = x
-  .replaceAll(`\\:${name}:`, `:\\${name}:`)
-  .replaceAll(`:${name}:`, `^p,${source};`)
-  .replaceAll(`:\\${name}:`, `:${name}:`);
 
-  return x;
+  return x.replace(/(\\?)(:(.{4,8}?):)/g, (_match, bs, og, name) =>
+    bs ? og : emo[name] ? '^p,' + emo[name] + ',emote;' : og);
 }
+
+var statsret = null;

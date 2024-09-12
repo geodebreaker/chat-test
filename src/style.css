@@ -12,6 +12,7 @@ body {
   font-family: monospace;
   font-size: 20px;
   color: white;
+  overflow: clip;
 }
 
 input,
@@ -31,7 +32,7 @@ button {
   height: 50px;
 }
 
-body>*:not(#login, #menu, #rclick, .img) {
+body>*:not(#login, #menu, #rclick, .img, #alert, #closealert, #alertcon) {
   border: 1px solid #888;
   display: inline-block;
   box-sizing: border-box;
@@ -190,7 +191,10 @@ a:visited {
   max-height: 300px;
   vertical-align: middle;
   border: 2px dotted #888;
+  line-height: 10px;
 }
+
+.img.emote { border: none; }
 
 .img:active {
   width: unset;
@@ -234,4 +238,42 @@ a:visited {
 .tag._3 { 
   color: #aa0;
   border-color: #aa0;
+}
+
+#alert {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 20px;
+  font-size: 20px;
+  white-space: pre;
+  background: #222;
+  border-bottom: 1px solid #888;
+}
+
+#closealert {
+  font-weight: bold;
+  color: red;
+  position: absolute;
+  top: 0;
+  right: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#alertcon {
+  height: 0;
+  z-index: 100;
+  display: none;
+}
+
+#loadmsg {
+  margin: auto;
+  text-align: center;
+  font-weight: bold;
+  margin: 5px;
+  border-bottom: 2px solid #888;
+  cursor: pointer;
+  user-select: none;
 }
