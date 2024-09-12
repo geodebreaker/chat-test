@@ -28,6 +28,23 @@ conn.connect((err) => {
     return;
   }
   console.log('Connected to DB');
+  const sql = 'SELECT * FROM users';
+  conn.query(sql, (error, results) => {
+    if (error) {
+      return;
+    }
+    results.map((x) => {
+      usercache.push({
+        id: x.id,
+        un: x.un,
+        pw: x.pw,
+        perm: x.perm,
+        ban: x.ban,
+        notif: x.notif,
+        time: Date.now()
+      })
+    });
+  });
 });
 
 setInterval(() => {
@@ -101,12 +118,12 @@ function fromUserCache(type, value, newType) {
         var res = results[0];
         if (res) {
           usercache.push({
-            id: results[0].id,
-            un: results[0].un,
-            pw: results[0].pw,
-            perm: results[0].perm,
-            ban: results[0].ban,
-            notif: results[0].notif,
+            id: res.id,
+            un: res.un,
+            pw: res.pw,
+            perm: res.perm,
+            ban: res.ban,
+            notif: res.notif,
             time: Date.now()
           });
           // console.log(`UCache miss: ${type} ${value} ${newType} -> ${res[newType]}`);
@@ -175,7 +192,7 @@ function getUserData(id, val) {
   return fromUserCache('id', id, val);
 }
 
-async function stats(id){
+async function getUserStats(id) {
   var cli = clients[await getUser(id)] ?? {};
   return {
     id: id,
@@ -299,7 +316,7 @@ function sendUserList(ws) {
 var wss = new ws.Server({ server: svr });
 var clients = {};
 var dontcon = {};
-
+var ualert = '';
 
 
 function send(ws, type, data) {
@@ -371,6 +388,8 @@ wss.on('connection', (ws) => {
         } else
           ws.room = x.room;
         ws.li = true;
+        if (ualert)
+          send(ws, 'popup', ualert);
         if (!(dontcon[ws.un] && Date.now() - dontcon[ws.un] < 10e3))
           emit('connect', [ws.un, ws.tag], ws.room, ws.un);
         console.log(`${ws.un} logged into room ${ws.room}`);
@@ -466,7 +485,7 @@ wss.on('connection', (ws) => {
 
         putMsg(ws.uid, ws.room, x.value).then(id => {
           (x.value.match(/(?<=@)\S{2,12}/g) || []).concat(ws.otherroom)
-            .filter(x => x != ws.un).map(async z => {
+            .filter(x => x != ws.un).filter((x, i, a) => i == a.indexOf(x)).map(async z => {
               var uid = await fromUsername(z);
               if (!uid) return;
               var rm = ws.otherroom.length > 0 ? '!' + ws.otherroom.filter(x => x != z).join('\\,') : ws.room;
@@ -503,7 +522,7 @@ wss.on('connection', (ws) => {
               var id = await fromUsername(x[1]);
               if (!id) return;
               var tag = await getUserData(id, 'tag');
-              if(tag >= ws.tag) return;
+              if (tag >= ws.tag) return;
               var b = await getUserData(id, 'ban');
               setUserData(id, 'ban', !b);
               emit('alert', ['user ' + (b ? 'un' : '') + 'banned:', x[1], false], ws.room);
@@ -514,7 +533,7 @@ wss.on('connection', (ws) => {
               var id = await fromUsername(x[1]);
               if (!id) return;
               var tag = await getUserData(id, 'tag');
-              if(tag >= ws.tag) return;
+              if (tag >= ws.tag) return;
               var to = now + x[2];
               setUserData(ws.uid, 'timeout', now + x[2]);
               if (clients[x[1]])
@@ -531,7 +550,14 @@ wss.on('connection', (ws) => {
 
               var id = await fromUsername(x[1]);
               if (!id) return;
-              
+              send(ws, 'stats', await getUserStats(id));
+
+              break;
+            case 'setpopup':
+
+              ualert = x;
+              wss.clients.forEach(x => 
+                send(x, 'popup', ualert));
 
               break;
           }
