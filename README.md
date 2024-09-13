@@ -6,9 +6,5 @@ not finshed at all
 
 # todo
 
-- user system
-  - pw
-    - html
-    - server
-    - cli js
-  - sign up
+- idfk at this point
+- dont use this its horrible
