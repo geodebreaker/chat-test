@@ -21,7 +21,7 @@ function login() {
   if (ws)
     ws.close();
   ws = new WebSocket(
-    (window.location.protocol == 'https:' ? 'wss://' : 'ws://') + (window.notproxy ? window.location.host : 'ws://evrtdg.com')
+    (window.location.protocol == 'https:' ? 'wss://' : 'ws://') + (window.notproxy ? window.location.host : 'evrtdg.com')
   );
   ws.onmessage = async value => {
     var x = JSON.parse(value.data);
