@@ -267,7 +267,7 @@ function handleCmd(cmd, args) {
         ws.send(JSON.stringify({ mod: ['stats', args[0]] }));
         break;
       case 'ban':
-        ws.send(JSON.stringify({ mod: ['stats', args[0]] }));
+        ws.send(JSON.stringify({ mod: ['ban', args[0]] }));
         res('attempted to ban ' + args[0])
         break;
       case 'to':
