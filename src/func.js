@@ -101,6 +101,8 @@ function rclick(event) {
 function clickLink(ev, t) {
   if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}?"`))
     ev.preventDefault();
+  else if(t.startsWith('#'))
+    location = location.split('#')[0] + t;
 }
 
 
@@ -138,8 +140,7 @@ function styles(x, y) {
     case 'l':
     case 'ls':
       var href = y[0].startsWith('#') ? y[0] : y[0].replace(/^(?:http(s?):\/\/)?/, () => 'https://');
-      return (`<a onclick="clickLink(event, ${y[0].startsWith('#') ? "'" + y[0] + "'" : href
-        })" target="${x == 'l' ? '_blank' : ''
+      return (`<a onclick="clickLink(event, ${"'" + href + "'"})" target="${x == 'l' ? '_blank' : ''
         }" href="${href}">${y[1] ?? y[0]
         }</a>`);
     case 'p':
