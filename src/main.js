@@ -18,6 +18,7 @@ function init() {
   window.onfocus = () => { notif = 0; updateTitle() };
   window.onhashchange = (e) => {
     var old = $('#room').value;
+    notif = 0;
     if (old != ($('#room').value = new URL(e.newURL).hash.replace('#', ''))) {
       leave(true);
       login();
@@ -61,6 +62,8 @@ var loggedin = false;
 var menuopen = false;
 var userlist = [];
 var loadmsg = [];
+var loadmsgpage = 1;
+var loadmsgdone = false;
 
 
 
@@ -70,15 +73,15 @@ function send(value) {
     if (value.startsWith('/')) { //command
       const parsedCmd = parseCmd(value);
       handleCmd(parsedCmd.cmd, parsedCmd.args)
-      .then(
-        (successMsg) => {
-          if (successMsg) 
-            mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
-        },
-        (failMsg) => {
-          mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
-        }
-      );
+        .then(
+          (successMsg) => {
+            if (successMsg)
+              mkalert(false, parsedCmd.cmd + ': ', successMsg, false, true);
+          },
+          (failMsg) => {
+            mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
+          }
+        );
     } else { //message
       var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
       ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
@@ -106,7 +109,7 @@ function mkmsg(from, data, id, date, tag, x, y) {
   c.dataset.user = from;
   c.innerHTML = u.outerHTML + m.outerHTML + '<br>';
 
-  if(y)
+  if (y)
     $('#loadmsg').insertAdjacentElement('afterend', c);
   else
     $('#chat').appendChild(c);
@@ -131,7 +134,7 @@ function mkalert(type, data, un, tag, x) {
   $('#chat').appendChild(c);
   updateChat();
 
-  if (!room.startsWith('?')) 
+  if (!room.startsWith('?'))
     playPing();
   if (!ontab()) {
     notif++;
@@ -141,7 +144,7 @@ function mkalert(type, data, un, tag, x) {
 
 function updateChat() {
   // if($('#chat').scrollTop > 0 || $('#chat').scrollHeight < 100)
-    $('#chat').scrollTop = $('#chat').scrollHeight;
+  $('#chat').scrollTop = $('#chat').scrollHeight;
 }
 
 function updateMenu() {

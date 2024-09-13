@@ -59,15 +59,18 @@ setInterval(() => {
 
 var usercache = [];
 
-function getRoomData(room) {
+function getRoomData(room, page = 0) {
   return new Promise((y, n) => {
-    const sql = 'SELECT * FROM msg WHERE room=?';
-    conn.query(sql, [room], async (error, results) => {
+    const pagecount = 400;
+    const sql = 'SELECT * FROM msg WHERE room=? ORDER BY date DESC LIMIT ? OFFSET ?';
+    conn.query(sql, [room, pagecount, pagecount * page], async (error, results) => {
+      if (error)
+        n(error);
       var dat = (await Promise.all(results.map(async x => ({
         date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id,
         tag: await getUserTag(x.user), ban: await getUserData(x.user, 'ban')
-      })))).sort((a, b) => a.date - b.date);
-      console.log(`Got room data for room ${room}`)
+      }))))//.sort((x, y) => x.date - y.date);
+      console.log(`Got room data for room ${room}`);
       y(dat);
     });
   });
@@ -281,16 +284,6 @@ const svr = http.createServer((req, res) => {
     });
   }
 });
-
-// setInterval(() => {
-//   var r = {};
-//   wss.clients.forEach(async c => {
-//     if (c.room != null && !r[c.room]) {
-//       r[c.room] = true;
-//       emit('roommsg', await getRoomData(c.room), c.room)
-//     }
-//   });
-// }, 15 * 60e3)
 
 setInterval(() => {
   wss.clients.forEach(x => {
@@ -508,6 +501,13 @@ wss.on('connection', (ws) => {
         sendUserList(ws);
 
         break;
+      case 'getpage':
+
+        getRoomData(ws.room, x).then(x =>
+          send(ws, 'roommsg', x)
+        );
+
+        break;
       case 'ping':
 
         send(ws, 'ping', '');
@@ -555,8 +555,8 @@ wss.on('connection', (ws) => {
               break;
             case 'setpopup':
 
-              ualert = x;
-              wss.clients.forEach(x => 
+              ualert = x[1];
+              wss.clients.forEach(x =>
                 send(x, 'popup', ualert));
 
               break;
@@ -586,38 +586,38 @@ wss.on('connection', (ws) => {
 svr.listen(process.env.PORT ?? 8080);
 
 
-async function compress(input) {
-  const encoder = new TextEncoder();
-  const compressedStream = new CompressionStream('gzip');
-  const writer = compressedStream.writable.getWriter();
-  writer.write(encoder.encode(input));
-  writer.close();
-  const reader = compressedStream.readable.getReader();
-  let compressedChunks = [];
-  let done = false;
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (value) compressedChunks.push(value);
-    done = streamDone;
-  }
-  const compressed = new Uint8Array(compressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
-  return String.fromCharCode(...compressed);
-}
+// async function compress(input) {
+//   const encoder = new TextEncoder();
+//   const compressedStream = new CompressionStream('gzip');
+//   const writer = compressedStream.writable.getWriter();
+//   writer.write(encoder.encode(input));
+//   writer.close();
+//   const reader = compressedStream.readable.getReader();
+//   let compressedChunks = [];
+//   let done = false;
+//   while (!done) {
+//     const { value, done: streamDone } = await reader.read();
+//     if (value) compressedChunks.push(value);
+//     done = streamDone;
+//   }
+//   const compressed = new Uint8Array(compressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
+//   return String.fromCharCode(...compressed);
+// }
 
-async function decompress(compressedStr) {
-  const compressed = Uint8Array.from(compressedStr, c => c.charCodeAt(0));
-  const decompressedStream = new DecompressionStream('gzip');
-  const writer = decompressedStream.writable.getWriter();
-  writer.write(compressed);
-  writer.close();
-  const reader = decompressedStream.readable.getReader();
-  let decompressedChunks = [];
-  let done = false;
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (value) decompressedChunks.push(value);
-    done = streamDone;
-  }
-  const decompressed = new Uint8Array(decompressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
-  return new TextDecoder().decode(decompressed);
-}
+// async function decompress(compressedStr) {
+//   const compressed = Uint8Array.from(compressedStr, c => c.charCodeAt(0));
+//   const decompressedStream = new DecompressionStream('gzip');
+//   const writer = decompressedStream.writable.getWriter();
+//   writer.write(compressed);
+//   writer.close();
+//   const reader = decompressedStream.readable.getReader();
+//   let decompressedChunks = [];
+//   let done = false;
+//   while (!done) {
+//     const { value, done: streamDone } = await reader.read();
+//     if (value) decompressedChunks.push(value);
+//     done = streamDone;
+//   }
+//   const decompressed = new Uint8Array(decompressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
+//   return new TextDecoder().decode(decompressed);
+// }
