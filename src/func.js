@@ -101,8 +101,11 @@ function rclick(event) {
 function clickLink(ev, t) {
   if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}?"`))
     ev.preventDefault();
-  else if(t.startsWith('#'))
-    location = location.split('#')[0] + t;
+  else if(t.startsWith('#')){
+    $('#room').value=t.replace(/#/, '');
+    leave();
+    login();
+  }
 }
 
 
