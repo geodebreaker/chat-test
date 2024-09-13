@@ -1,8 +1,14 @@
 $ = x => document.querySelector(x);
 $$ = x => document.querySelectorAll(x);
+var lse = true;
+try{
+  localStorage
+}catch(e){
+  lse = false;
+}
 
 function init() {
-  if (window.localStorage && localStorage.un) {
+  if (lse && localStorage.un) {
     un = localStorage.un;
     $('#username').value = un;
     $('#username').style.color = colorhash($('#username').value);
