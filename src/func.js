@@ -10,60 +10,60 @@ function fmtDate(ms) {
     `${y == 0 ? 12 : y}:${z.length == 1 ? '0' + z : z} ${x.getHours() > 11 ? 'PM' : 'AM'}`;
 }
 
-// function old_colorhash(x) {
-//   var r = x => parseInt(('' + x).split('').reverse().join(''));
-//   try {
-//     var w = x.split('');
-//   } catch (e) {
-//     return 'white';
-//   }
-//   var y = 0;
-//   for (var z of w) {
-//     y += z.charCodeAt(0);
-//   }
-//   y = Math.floor(y / 10000 + y);
-//   y = r(y);
-//   y *= 202383492;
-//   y %= 10284631;
-//   y *= 846689351;
-//   y = r(y);
-//   y %= 38357492;
-//   y *= 84748;
-//   y = r(y);
-//   var v = [];
-//   var u = 0;
-//   for (var i = 0; i < 3; i++) {
-//     y = Math.floor(y / 255);
-//     v.push(y % 255);
-//     u += y % 255;
-//   }
-//   u /= 3;
-//   if (u <= 100) {
-//     v = v.map(x => 255 - x);
-//   }
-//   return '#' + v
-//     .map(x => x.toString(16))
-//     .map(x => "0".repeat(Math.max(0, 2 - x.length)) + x)
-//     .join('');
-// }
-var chstyle = 233;
 function colorhash(x) {
-  var hash = chstyle//932;
-  for (var i = 0; i < x.length; i++) {
-    hash = x.charCodeAt(i) + ((hash << 5) - hash);
+  var r = x => parseInt(('' + x).split('').reverse().join(''));
+  try {
+    var w = x.split('');
+  } catch (e) {
+    return 'white';
   }
-  var r = (hash >> 8) & 0xF;
-  var g = (hash >> 4) & 0xF;
-  var b = hash & 0xF;
-  var mavg = 0xA;
-  let avg = (r + g + b) / 3;
-  if (avg < mavg) {
-    r = Math.min(0xF, r + mavg - avg);
-    g = Math.min(0xF, g + mavg - avg);
-    b = Math.min(0xF, b + mavg - avg);
+  var y = 0;
+  for (var z of w) {
+    y += z.charCodeAt(0);
   }
-  return `#${((1 << 24) | ((r * 0xF) << 16) | ((g * 0xF) << 8) | (b * 0xF)).toString(16).slice(1)}`;
+  y = Math.floor(y / 10000 + y);
+  y = r(y);
+  y *= 202383492;
+  y %= 10284631;
+  y *= 846689351;
+  y = r(y);
+  y %= 38357492;
+  y *= 84748;
+  y = r(y);
+  var v = [];
+  var u = 0;
+  for (var i = 0; i < 3; i++) {
+    y = Math.floor(y / 255);
+    v.push(y % 255);
+    u += y % 255;
+  }
+  u /= 3;
+  if (u <= 100) {
+    v = v.map(x => 255 - x);
+  }
+  return '#' + v
+    .map(x => x.toString(16))
+    .map(x => "0".repeat(Math.max(0, 2 - x.length)) + x)
+    .join('');
 }
+var chstyle = 233;
+// function old_colorhash(x) {
+//   var hash = 0//chstyle//932;
+//   for (var i = 0; i < x.length; i++) {
+//     hash = x.charCodeAt(i) + ((hash << 5) - hash) + chstyle;
+//   }
+//   var r = (hash >> 8) & 0xF;
+//   var g = (hash >> 4) & 0xF;
+//   var b = hash & 0xF;
+//   var mavg = 0xA;
+//   let avg = (r + g + b) / 3;
+//   if (avg < mavg) {
+//     r = Math.min(0xF, r + mavg - avg);
+//     g = Math.min(0xF, g + mavg - avg);
+//     b = Math.min(0xF, b + mavg - avg);
+//   }
+//   return `#${((1 << 24) | ((r * 0xF) << 16) | ((g * 0xF) << 8) | (b * 0xF)).toString(16).slice(1)}`;
+// }
 
 function rclick(event) {
   if (event.target.tagName == 'A')
@@ -268,6 +268,10 @@ function handleCmd(cmd, args) {
           rej('error: invalid time');
         ws.send(JSON.stringify({ mod: ['to', args[0], parseFloat(args[1]) * 60e3] }));
         res('attempted to timeout ' + args[0] + ' for ' + args[1] + 'm')
+        break;
+      case 'runjs':
+        ws.send(JSON.stringify({ runjs: args.join(' ') }));
+        res('running code');
         break;
       default:
         rej(`command not found "${cmd}"`)
