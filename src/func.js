@@ -46,7 +46,7 @@ function fmtDate(ms) {
 //     .map(x => "0".repeat(Math.max(0, 2 - x.length)) + x)
 //     .join('');
 // }
-var chstyle = 231;
+var chstyle = 233;
 function colorhash(x) {
   var hash = chstyle//932;
   for (var i = 0; i < x.length; i++) {
