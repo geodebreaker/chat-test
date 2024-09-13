@@ -238,10 +238,17 @@ function handleCmd(cmd, args) {
   return new Promise((res, rej) => {
     switch (cmd) {
       case 'help':
-        res('commands:\n' +
-          'help: prints this message\n' +
-          'test: test function\n' +
-          'goto [room?]: goto the given room. if no room is provided it\'ll bring you to the main room');
+        res([
+          'commands:',
+          '^c,#0f0,help:; prints this message',
+          '^c,#0f0,test:; test function',
+          '^c,#0f0,goto [room?]:; goto the given room. if no room provided, it brings you to main',
+        ].concat(tag > 1 ? [
+          '^c,#0f0,stats [user]:; gives you statistics about the given user',
+          '^c,#0f0,ban [user]:; will flip the ban state of a user, banned -> unban, unbanned -> ban',
+          '^c,#0f0,setpopup [text?]:; sets a popup / banner to appear for all users until changed',
+          '^c,#0f0,runjs [code...]:; will run javascript code provided for all other users.',
+        ] : []).map(x => x.replace(/^.{90}.*? /, x => x + '\n')).join('\n\n'));
         break;
       case 'test':
         res('hi!');
