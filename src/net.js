@@ -11,7 +11,7 @@ function login() {
   room = $('#room').value;
   window.location.hash = room;
   var pw = $('#password').value;
-  if (window.localStorage) {
+  if (lse) {
     localStorage.un = un;
     localStorage.room = room;
     localStorage.pw = pw;
