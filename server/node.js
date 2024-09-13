@@ -69,7 +69,7 @@ function getRoomData(room, page = 0) {
       var dat = (await Promise.all(results.map(async x => ({
         date: Date.parse(x.date), user: await getUser(x.user), text: x.text, id: x.id,
         tag: await getUserTag(x.user), ban: await getUserData(x.user, 'ban')
-      }))))//.sort((x, y) => x.date - y.date);
+      })))).sort((x, y) => x.date - y.date);
       console.log(`Got room data for room ${room}`);
       y(dat);
     });
@@ -199,11 +199,11 @@ async function getUserStats(id) {
   var cli = clients[await getUser(id)] ?? {};
   return {
     id: id,
-    un: getUserData(id, 'un'),
-    tag: getUserData(id, 'perm'),
-    banned: getUserData(id, 'ban'),
-    timeout: getUserData(id, 'tiemout'),
-    online: !!cli,
+    un: await getUserData(id, 'un'),
+    tag: await getUserData(id, 'perm'),
+    banned: !!(await getUserData(id, 'ban')),
+    timeout: await getUserData(id, 'timeout'),
+    online: !!cli.li,
     room: cli.room,
   };
 }

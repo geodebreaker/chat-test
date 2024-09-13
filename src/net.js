@@ -108,7 +108,8 @@ function login() {
         break;
       case 'stats':
         if (statsret)
-          statsret(JSON.stringify(x));
+          statsret(x.un + '\'s stats:' + Object.keys(x).map(y =>
+            '\n^c,green,>; ' + y + ': ' + x[y]).join(''));
         break;
     }
   };
@@ -123,6 +124,7 @@ function login() {
   };
   ws.onclose = (x) => {
     if (lifail == false) {
+      attempts++;
       if (loggedin) {
         if (attempts > 4 || $('#login:popover-open')) {
           $('#login').showPopover();
@@ -132,7 +134,6 @@ function login() {
         }
       } else if (loggedin !== null && attempts <= 4) {
         $('#lilog').innerText = 'failed to sign in: failed to connect to server';
-        attempts++;
         leave();
         login();
       }
