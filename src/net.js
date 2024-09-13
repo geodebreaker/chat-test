@@ -16,6 +16,8 @@ function login() {
     localStorage.room = room;
     localStorage.pw = pw;
   }
+  if (!(!room.startsWith('?') || room == '?mod' || room == '?ban'))
+    $('#chat').innerHTML = '';
   if (ws)
     ws.close();
   ws = new WebSocket(
@@ -51,7 +53,7 @@ function login() {
                 hr ? 'hidden' : 'visible';
               if (!hr)
                 $('#msg').focus();
-            }, x=>alert(x));
+            }, x => alert(x));
           }, 100)
         } else {
           $('#login').showPopover();
@@ -102,10 +104,10 @@ function login() {
       case 'popup':
         $('#alertcon').style.display = 'block';
         hammers = JSON.stringify(x);
-        $('#alert').innerHTML = styleMsg(x[2]);
+        $('#alert').innerHTML = styleMsg(x);
         break;
       case 'stats':
-        if(statsret)
+        if (statsret)
           statsret(JSON.stringify(x));
         break;
     }
@@ -128,7 +130,7 @@ function login() {
           loggedin = false;
           updateTitle();
         }
-      } else if (loggedin !== null) {
+      } else if (loggedin !== null && attempts <= 4) {
         $('#lilog').innerText = 'failed to sign in: failed to connect to server';
         attempts++;
         leave();
@@ -159,69 +161,43 @@ function leave(x) {
     loggedin = null;
     ws.close();
   }
-  $('#chat').innerHTML = '';
   userlist = [];
-  notif = 0;
   updateTitle();
   $('#lilog').innerText = '';
+  loadmsgpage = 0;
+  loadmsgdone = false;
 }
 
 var ping;
 fetch('ping.mp3').then(x => x.blob()).then(x => ping = URL.createObjectURL(x));
 
-async function compress(input) {
-  const encoder = new TextEncoder();
-  const compressedStream = new CompressionStream('gzip');
-  const writer = compressedStream.writable.getWriter();
-  writer.write(encoder.encode(input));
-  writer.close();
-  const reader = compressedStream.readable.getReader();
-  let compressedChunks = [];
-  let done = false;
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (value) compressedChunks.push(value);
-    done = streamDone;
-  }
-  const compressed = new Uint8Array(compressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
-  return String.fromCharCode(...compressed);
-}
-
-async function decompress(compressedStr) {
-  const compressed = Uint8Array.from(compressedStr, c => c.charCodeAt(0));
-  const decompressedStream = new DecompressionStream('gzip');
-  const writer = decompressedStream.writable.getWriter();
-  writer.write(compressed);
-  writer.close();
-  const reader = decompressedStream.readable.getReader();
-  let decompressedChunks = [];
-  let done = false;
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (value) decompressedChunks.push(value);
-    done = streamDone;
-  }
-  const decompressed = new Uint8Array(decompressedChunks.reduce((acc, chunk) => acc.concat(Array.from(chunk)), []));
-  return new TextDecoder().decode(decompressed);
-}
-
 async function roomMsg(z, a) {
   loadmsg = z;
 
-  if (!room.startsWith('?') || room == '?mod' || room == '?ban')
+  if (a && (!room.startsWith('?') || room == '?mod' || room == '?ban'))
     $('#chat').innerHTML = loadmsgbtn;
+
+  if (loadmsg.length == 0)
+    loadmsgdone = true;
+  if (!a) {
+    loadmsgpage++;
+  }
 
   await loadmoremsg();
   return;
 }
 
 async function loadmoremsg() {
-  var a = 300;
+  var a = 100;
 
   var x = loadmsg.splice(loadmsg.length - a, a).reverse();
-  x.map(y => new Promise((x)=>x(mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true))));
-  if (loadmsg.length == 0 && $('#loadmsg'))
-    $('#loadmsg').remove();
+  x.map(y => new Promise((x) => x(mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true))));
+  if (loadmsg.length == 0) {
+    if (!loadmsgdone)
+      ws.send(JSON.stringify({ getpage: loadmsgpage }));
+    else if ($('#loadmsg'))
+      $('#loadmsg').remove();
+  }
   return;
 }
 
