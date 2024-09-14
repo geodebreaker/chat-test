@@ -7,7 +7,7 @@ function login() {
   if (ws && ws.readyState == ws.OPEN && !loggedin && !lifail) {
     return;
   }
-  un = $('#username').value;
+  un = $('#username').value.toLowerCase();
   room = $('#room').value;
   window.location.hash = room;
   var pw = $('#password').value;
@@ -68,13 +68,11 @@ function login() {
         break;
       case 'connect':
         mkalert(false, 'connected: ', x[0]);
-        userlist.push(x);
-        updateMenu();
+        ws.send(JSON.stringify({ users: '' }));
         break;
       case 'disconnect':
         mkalert(true, 'disconnected: ', x[0]);
-        userlist.splice(userlist.findIndex(z => z[0] == x[0]), 1);
-        updateMenu();
+        ws.send(JSON.stringify({ users: '' }));
         break;
       case 'users':
         userlist = x;
@@ -108,7 +106,7 @@ function login() {
         break;
       case 'stats':
         if (statsret)
-          statsret(x.un + '\'s stats:' + Object.keys(x).map(y =>
+          statsret('^uc,' + x.un + ';\'s stats:' + Object.keys(x).map(y =>
             '\n^c,green,>; ' + y + ': ' + x[y]).join(''));
         break;
     }
@@ -165,7 +163,7 @@ function leave(x) {
   userlist = [];
   updateTitle();
   $('#lilog').innerText = '';
-  loadmsgpage = 0;
+  loadmsgpage = 1;
   loadmsgdone = false;
 }
 

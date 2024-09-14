@@ -5,6 +5,7 @@ const ws = require('ws');
 const mysql = require('mysql2');
 const stream = require('stream');
 const URL = require('url');
+const { log } = require('console');
 
 process.on('unhandledException', (reason) => {
   console.error(reason);
@@ -40,6 +41,7 @@ conn.connect((err) => {
         pw: x.pw,
         perm: x.perm,
         ban: x.ban,
+        timeout: x.timeout,
         notif: x.notif,
         time: Date.now()
       })
@@ -126,6 +128,7 @@ function fromUserCache(type, value, newType) {
             pw: res.pw,
             perm: res.perm,
             ban: res.ban,
+            timeout: res.timeout,
             notif: res.notif,
             time: Date.now()
           });
@@ -157,6 +160,17 @@ function getAllUsers() {
       if (error)
         return n(error);
       y(results.map(x => [x.un, clients[x.un] != undefined, x.ban ? -1 : x.perm]));
+    });
+  });
+}
+
+function getAllMods() {
+  return new Promise((y, n) => {
+    var sql = "SELECT un, perm FROM users WHERE perm > 1";
+    conn.query(sql, (error, results) => {
+      if (error)
+        return n(error);
+      y(results.map(x => x.un));
     });
   });
 }
@@ -202,7 +216,7 @@ async function getUserStats(id) {
     un: await getUserData(id, 'un'),
     tag: await getUserData(id, 'perm'),
     banned: !!(await getUserData(id, 'ban')),
-    timeout: await getUserData(id, 'timeout'),
+    timeout: Date.now() - await getUserData(id, 'timeout'),
     online: !!cli.li,
     room: cli.room,
   };
@@ -289,7 +303,7 @@ setInterval(() => {
   wss.clients.forEach(x => {
     if (x.li) sendUserList(x);
   });
-}, 3 * 60e3)
+}, 60e3)
 
 function makeDmRoom(room, un) {
   var r = room.replace('!', '').split(',').concat([un]).filter((x, i, a) => a.indexOf(x) == i).sort();
@@ -323,7 +337,7 @@ function send(ws, type, data) {
 
 function emit(type, data, room, exclude) {
   for (var un in clients) {
-    if (clients[un].room == room && un != exclude)
+    if ((room == '*' || clients[un].room == room) && un != exclude)
       send(clients[un], type, data);
   }
 }
@@ -460,35 +474,43 @@ wss.on('connection', (ws) => {
         }
 
         var to = await getUserData(ws.uid, 'timeout');
+        var ban = await getUserData(ws.uid, 'ban');
 
         if (spam > 10) {
           to = now + 10e3;
           setUserData(ws.uid, 'timeout', to);
           send(ws, 'alert', ['timed out:', '10s']);
         } else if (to > now) {
-          send(ws, 'alert', ['timeout active for:', Math.floor((to - now) / 1000) + 's']);
+          send(ws, 'alert', ['timeout active for:', 
+            (to - now) > 60e3 ? Math.floor((to - now) / 60e3) + 'm' : Math.floor((to - now) / 1e3) + 's']);
+        }
+
+        if (ban) {
+          send(ws, 'alert', ['you are banned:', 'go to #?ban to repeal']);
         }
 
         if (
           x.value.length > 156 ||
-          await getUserData(ws.uid, 'ban') && ws.room != '?ban' ||
+          ban && ws.room != '?ban' ||
           to > now ||
           spam > 0
         ) return send(ws, 'remmsg', x.tmpid);
 
-        putMsg(ws.uid, ws.room, x.value).then(id => {
-          (x.value.match(/(?<=@)\S{2,12}/g) || []).concat(ws.otherroom)
-            .filter(x => x != ws.un).filter((x, i, a) => i == a.indexOf(x)).map(async z => {
-              var uid = await fromUsername(z);
-              if (!uid) return;
-              var rm = ws.otherroom.length > 0 ? '!' + ws.otherroom.filter(x => x != z).join('\\,') : ws.room;
-              if (clients[z] && clients[z].room != ws.room)
-                send(clients[z], 'alert', ['pinged:', `by @${ws.un} in ^ls,#${rm};`, true, true]);
-              setUserData(uid, 'notif', JSON.stringify(JSON.parse(
-                await getUserData(uid, 'notif') || '[]').concat(
-                  [[id, rm, ws.un]])
-                .filter((x, y) => y < 64)))
-            });
+        putMsg(ws.uid, ws.room, x.value).then(async id => {
+          var mu = (x.value.match(/(?<=@)\S{2,12}/g) || []).concat(ws.otherroom);
+          if (mu.includes('mods'))
+            mu.splice(mu.indexOf('mods'), 1, ...(await getAllMods()));
+          mu.filter(x => x != ws.un).filter((x, i, a) => i == a.indexOf(x)).map(async z => {
+            var uid = await fromUsername(z);
+            if (!uid) return;
+            var rm = ws.otherroom.length > 0 ? '!' + ws.otherroom.filter(x => x != z).join('\\,') : ws.room;
+            if (clients[z] && clients[z].room != ws.room)
+              send(clients[z], 'alert', ['pinged:', `by @${ws.un} in ^ls,#${rm};`, true, true]);
+            setUserData(uid, 'notif', JSON.stringify(JSON.parse(
+              await getUserData(uid, 'notif') || '[]').concat(
+                [[id, rm, ws.un]])
+              .filter((x, y) => y < 64)))
+          });
           emit('msg',
             { from: ws.un, data: x.value, id: id, date: Date.now(), tag: ws.tag },
             ws.room, ws.un);
@@ -521,7 +543,7 @@ wss.on('connection', (ws) => {
 
               var id = await fromUsername(x[1]);
               if (!id) return;
-              var tag = await getUserData(id, 'tag');
+              var tag = await getUserData(id, 'perm');
               if (tag >= ws.tag) return;
               var b = await getUserData(id, 'ban');
               setUserData(id, 'ban', !b);
@@ -532,10 +554,10 @@ wss.on('connection', (ws) => {
 
               var id = await fromUsername(x[1]);
               if (!id) return;
-              var tag = await getUserData(id, 'tag');
+              var tag = await getUserData(id, 'perm');
               if (tag >= ws.tag) return;
-              var to = now + x[2];
-              setUserData(ws.uid, 'timeout', now + x[2]);
+              var to = parseFloat(x[2]);
+              setUserData(ws.uid, 'timeout', Date.now() + to);
               if (clients[x[1]])
                 send(clients[x[1]], 'alert', ['timed out:',
                   to > 60e3 ? Math.floor(to / 60e3) + 'm' : Math.floor(to / 1e3) + 's']);
@@ -565,7 +587,7 @@ wss.on('connection', (ws) => {
         break;
       case 'runjs':
         if (ws.tag > 1)
-          emit('runjs', x, ws.room, ws.un);
+          emit('runjs', x, '*', ws.un);
         break;
     }
   });

@@ -70,6 +70,7 @@ var userlist = [];
 var loadmsg = [];
 var loadmsgpage = 1;
 var loadmsgdone = false;
+var prevscrlpos = 0;
 
 
 
@@ -102,6 +103,7 @@ function recv(value) {
 }
 
 function mkmsg(from, data, id, date, tag, x, y) {
+  beforeUpdateChat()
   var u = genTag(from, tag, true);
 
   var m = document.createElement('span');
@@ -109,6 +111,7 @@ function mkmsg(from, data, id, date, tag, x, y) {
 
   var c = document.createElement('span');
   c.oncontextmenu = rclick;
+  c.className = 'msgcon';
   c.dataset.id = id;
   c.dataset.date = date;
   c.dataset.text = data;
@@ -119,7 +122,7 @@ function mkmsg(from, data, id, date, tag, x, y) {
     $('#loadmsg').insertAdjacentElement('afterend', c);
   else
     $('#chat').appendChild(c);
-  updateChat();
+  updateChat(!y);
 
   if (!ontab() && !x) {
     notif++;
@@ -138,7 +141,7 @@ function mkalert(type, data, un, tag, x) {
   c.innerHTML = m.outerHTML + u.outerHTML + '<br>';
 
   $('#chat').appendChild(c);
-  updateChat();
+  updateChat(true);
 
   if (!room.startsWith('?'))
     playPing();
@@ -148,9 +151,12 @@ function mkalert(type, data, un, tag, x) {
   }
 }
 
-function updateChat() {
-  // if($('#chat').scrollTop > 0 || $('#chat').scrollHeight < 100)
-  $('#chat').scrollTop = $('#chat').scrollHeight;
+function beforeUpdateChat() {
+  prevscrlpos = $('#chat').scrollHeight - $('#chat').scrollTop;
+}
+
+function updateChat(m) {
+  $('#chat').scrollTop = $('#chat').scrollHeight - (m ? 0 : prevscrlpos - 1);
 }
 
 function updateMenu() {
