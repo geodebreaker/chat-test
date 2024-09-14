@@ -252,7 +252,7 @@ function handleCmd(cmd, args) {
     switch (cmd) {
       case 'help':
       case '?':
-        res([
+        res([ 
           'commands:',
           '^c,#0f0,help|?:; prints this message',
           '^c,#0f0,test:; test function',
