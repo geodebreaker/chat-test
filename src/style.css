@@ -277,3 +277,7 @@ a:visited {
   cursor: pointer;
   user-select: none;
 }
+
+span.msgcon > span:nth-child(2), span.msgcon > span:nth-child(2) *:not(img) {
+  border-radius: 5px;
+}

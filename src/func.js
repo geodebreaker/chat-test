@@ -101,8 +101,8 @@ function rclick(event) {
 function clickLink(ev, t) {
   if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}?"`))
     ev.preventDefault();
-  else if(t.startsWith('#')){
-    $('#room').value=t.replace(/#/, '');
+  else if (t.startsWith('#')) {
+    $('#room').value = t.replace(/#/, '');
     leave();
     login();
   }
@@ -157,10 +157,20 @@ function styles(x, y) {
     case 'c':
       return `<span style="color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
     case 'uc':
-      return `<span style="color:${colorhash(y.shift())};">${y.join(',')}</span>`;
+      return `<span style="color:${colorhash(y.length == 1 ? y[0] : y.shift())};">${y.join(',')}</span>`;
     case 'h':
-      return `<span style="background-color:${y.shift().replace(/;/g, '')};">${y.join(',')}</span>`;
+      return `<span style="background-color:${y.shift().replace(/;/g, '')};padding:0px 2px;">${y.join(',')}</span>`;
+    case 'sp':
+      return `<span style="${spoilerStyle}" onclick="spoilerStyleClick(this)">${y.join(',')}</span>`;
+    case 'sans':
+      return `<span style="font-family: 'Comic Sans MS';font-size: 15px;">${y.join(',')}</span>`;
   }
+}
+
+var spoilerStyle = "background-color:#000;color:#000;cursor:pointer;padding:0px 2px;";
+
+function spoilerStyleClick(e) {
+  e.style = "background-color:#444;color:#inherit;cursor:text;padding:0px 2px;";
 }
 
 function copyText(x) {
@@ -222,9 +232,6 @@ function parseCmd(value) {
 
     const IsWhitespace = char == ' ';
 
-    // console.log(`Char: ${char}\nUsingHasEscapeChar: ${HasEscapeChar}\nIsQuote: ${IsQuote}\nIsWhitespace: ${IsWhitespace}`); 
-    // for debugging if needed
-
     if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
     if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
       args.push(StringConstruct);
@@ -232,7 +239,7 @@ function parseCmd(value) {
     } else if (!IsQuote && char != '\\') StringConstruct += char;
 
   }
-  cmd = args.shift();
+  cmd = args.shift() ?? '';
 
   return { cmd, args };
 
@@ -242,15 +249,16 @@ function handleCmd(cmd, args) {
   return new Promise((res, rej) => {
     switch (cmd) {
       case 'help':
+      case '?':
         res([
           'commands:',
-          '^c,#0f0,help:; prints this message',
+          '^c,#0f0,help|?:; prints this message',
           '^c,#0f0,test:; test function',
           '^c,#0f0,goto [room?]:; goto the given room. if no room provided, it brings you to main',
         ].concat(tag > 1 ? [
           '^c,#0f0,stats [user]:; gives you statistics about the given user',
           '^c,#0f0,ban [user]:; will flip the ban state of a user, banned -> unban, unbanned -> ban',
-          '^c,#0f0,setpopup [text?]:; sets a popup / banner to appear for all users until changed',
+          '^c,#0f0,setpopup [text?...]:; sets a popup / banner to appear for all users until changed',
           '^c,#0f0,runjs [code...]:; will run javascript code provided for all other users.',
         ] : []).map(x => x.replace(/^.{90}.*? /, x => x + '\n')).join('\n\n'));
         break;
@@ -264,7 +272,7 @@ function handleCmd(cmd, args) {
         login();
         res();
       case 'setpopup':
-        ws.send(JSON.stringify({ mod: ['setpopup', args[0]] }));
+        ws.send(JSON.stringify({ mod: ['setpopup', args.join(' ')] }));
         break;
       case 'stats':
         statsret = res;
@@ -272,20 +280,20 @@ function handleCmd(cmd, args) {
         break;
       case 'ban':
         ws.send(JSON.stringify({ mod: ['ban', args[0]] }));
-        res('attempted to ban ' + args[0])
+        res('attempted to ban ^uc,' + args[0] + ';')
         break;
       case 'to':
         if (parseFloat(args[1]) == NaN)
           rej('error: invalid time');
         ws.send(JSON.stringify({ mod: ['to', args[0], parseFloat(args[1]) * 60e3] }));
-        res('attempted to timeout ' + args[0] + ' for ' + args[1] + 'm')
+        res('attempted to timeout ^uc,' + args[0] + '; for ' + args[1] + 'm')
         break;
       case 'runjs':
         ws.send(JSON.stringify({ runjs: args.join(' ') }));
         res('running code');
         break;
       default:
-        rej(`command not found "${cmd}"`)
+        rej(`command not found "${cmd}.\n^c,yellow,TIP:; use /help or /? for help"`)
         break;
     }
   });
