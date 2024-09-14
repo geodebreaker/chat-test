@@ -99,7 +99,7 @@ function rclick(event) {
 }
 
 function clickLink(ev, t) {
-  if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}?"`))
+  if (!room.startsWith('?') && !confirm(`Do you want to go to "${t}"?`))
     ev.preventDefault();
   else if (t.startsWith('#')) {
     $('#room').value = t.replace(/#/, '');
@@ -216,30 +216,32 @@ function playPing() {
 function parseCmd(value) {
 
   const txt = value.substring(1);
-  if (txt == '') return;
 
-  let cmd = null;
   const args = [];
+  let q = false;
+  let str = "";
 
-  let InQuotes = false;
-  let StringConstruct = '';
+  for (let i = 0; i <= txt.length; i++) {
+    const c = txt[i];
 
-  for (let CharIndex = 0; CharIndex <= txt.length; CharIndex++) {
-
-    const char = txt.charAt(CharIndex);
-    const HasEscapeChar = CharIndex != 0 && txt.charAt(CharIndex - 1) == '\\';
-    const IsQuote = !HasEscapeChar && char.replace('"', '\'') == '\'';        // this is ' char :mood:
-
-    const IsWhitespace = char == ' ';
-
-    if (IsQuote && !HasEscapeChar) InQuotes = !InQuotes;
-    if ((IsWhitespace && !InQuotes) || CharIndex == txt.length) {
-      args.push(StringConstruct);
-      StringConstruct = '';
-    } else if (!IsQuote && char != '\\') StringConstruct += char;
-
+    if (i == txt.length) {
+      args.push(str);
+    } else if (c == '\\') {
+      str += txt[++i];
+    } else if ((c == '"' || c == '\'') &&
+      (((txt[i - 1] == ' ' || i == 0) && !q) ||
+        (txt[i + 1] == ' ' && q))) {
+      q = !q;
+      if (txt[i + 1] == ' ' && q) i++;
+    } else if (c == ' ' && !q) {
+      args.push(str);
+      str = "";
+    } else {
+      str += c;
+    }
   }
-  cmd = args.shift() ?? '';
+
+  let cmd = args.shift() ?? '';
 
   return { cmd, args };
 
@@ -293,7 +295,7 @@ function handleCmd(cmd, args) {
         res('running code');
         break;
       default:
-        rej(`command not found "${cmd}.\n^c,yellow,TIP:; use /help or /? for help"`)
+        rej(`command not found "${cmd}".\n^c,yellow,TIP:; use /help or /? for help`)
         break;
     }
   });
