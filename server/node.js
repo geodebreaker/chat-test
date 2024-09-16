@@ -114,8 +114,8 @@ function fromUserCache(type, value, newType) {
       // console.log(`UCache hit: ${type} ${value} ${newType} -> ${u[newType]}`);
       y(u[newType]);
     } else {
-      const sql = 'SELECT * FROM users WHERE ' + type + '=?';
-      conn.query(sql, [value], (error, results) => {
+      const sql = `SELECT * FROM users WHERE ${type}${(type == 'un' ? ' LIKE ' : '=')}?`;
+      conn.query(sql, [value + (type == 'un' ? '%' : '')], (error, results) => {
         if (error) {
           n(error);
           return;
@@ -216,12 +216,18 @@ async function getUserStats(id) {
     un: await getUserData(id, 'un'),
     tag: await getUserData(id, 'perm'),
     banned: !!(await getUserData(id, 'ban')),
-    timeout: Date.now() - await getUserData(id, 'timeout'),
+    timeout: fmtTime(await getUserData(id, 'timeout'), true),
     online: !!cli.li,
     room: cli.room,
   };
 }
 
+
+function fmtTime(x, y) {
+  x = Math.max((x || 0) - (y ? Date.now() : 0), 0);
+  var z = Math.floor(x / 1e3) % 60;
+  return (x > 60e3 ? Math.floor(x / 60e3) + 'm ' : '') + (z == 0 ? '' : z + 's');
+}
 
 
 const svr = http.createServer((req, res) => {
@@ -342,7 +348,7 @@ function emit(type, data, room, exclude) {
   }
 }
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   ws.li = false;
   ws.un = '';
   ws.uid = null;
@@ -353,6 +359,7 @@ wss.on('connection', (ws) => {
   ws.spamm = [];
   ws.spamt = [];
   ws.ban = false;
+  ws.ip = req.socket.remoteAddress;
 
   ws.on('message', async (message) => {
     console.log(`Received from ${ws.un}: ${message}`);
@@ -481,8 +488,7 @@ wss.on('connection', (ws) => {
           setUserData(ws.uid, 'timeout', to);
           send(ws, 'alert', ['timed out:', '10s']);
         } else if (to > now) {
-          send(ws, 'alert', ['timeout active for:', 
-            (to - now) > 60e3 ? Math.floor((to - now) / 60e3) + 'm' : Math.floor((to - now) / 1e3) + 's']);
+          send(ws, 'alert', ['timeout active for:', fmtTime(to, true)]);
         }
 
         if (ban) {
@@ -557,10 +563,10 @@ wss.on('connection', (ws) => {
               var tag = await getUserData(id, 'perm');
               if (tag >= ws.tag) return;
               var to = parseFloat(x[2]);
-              setUserData(ws.uid, 'timeout', Date.now() + to);
+              setUserData(id, 'timeout', Date.now() + to);
               if (clients[x[1]])
-                send(clients[x[1]], 'alert', ['timed out:',
-                  to > 60e3 ? Math.floor(to / 60e3) + 'm' : Math.floor(to / 1e3) + 's']);
+                send(clients[x[1]], 'alert', ['timed out:', fmtTime(to)]);
+              send(ws, 'alert', ['timed out:', '^uc,' + x[1] + '; for ' + fmtTime(to)]);
 
               break;
             case 'del':

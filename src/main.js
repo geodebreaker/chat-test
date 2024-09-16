@@ -1,9 +1,9 @@
 $ = x => document.querySelector(x);
 $$ = x => document.querySelectorAll(x);
 var lse = true;
-try{
+try {
   localStorage
-}catch(e){
+} catch (e) {
   lse = false;
 }
 
@@ -53,7 +53,7 @@ function init() {
     if (menuopen)
       ws.send(JSON.stringify({ users: '' }));
   };
-
+  updateTitle();
   $('#login').showPopover();
 }
 
@@ -71,6 +71,7 @@ var loadmsg = [];
 var loadmsgpage = 1;
 var loadmsgdone = false;
 var prevscrlpos = 0;
+var cmdhistory = [];
 
 
 
@@ -89,6 +90,9 @@ function send(value) {
             mkalert(true, parsedCmd.cmd + ': ', failMsg, false, true);
           }
         );
+      cmdhistory.push(value);
+      if (cmdhistory.length > 50)
+        cmdhistory.shift();
     } else { //message
       var id = 'TMP-' + Math.floor(Math.random() * 256).toString(16);
       ws.send(JSON.stringify({ msg: { value: value, tmpid: id } }));
