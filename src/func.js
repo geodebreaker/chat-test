@@ -305,7 +305,7 @@ function styleEmote(x) {
   const emo = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll" ];
 
   return x.replace(/(\\?)(:(.{4,8}?):)/g, (_match, bs, og, name) =>
-    bs ? og : emo.includes('name') ? '^p,' + `https://evrtdg.com/emoji/${name}.jpg` + ',emote;' : og);
+    bs ? og : emo.includes(name) ? '^p,' + `https://evrtdg.com/emoji/${name}.jpg` + ',emote;' : og);
 }
 
 var statsret = null;
