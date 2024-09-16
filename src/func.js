@@ -252,11 +252,12 @@ function handleCmd(cmd, args) {
     switch (cmd) {
       case 'help':
       case '?':
-        res([ 
+        res([
           'commands:',
           '^c,#0f0,help|?:; prints this message',
           '^c,#0f0,test:; test function',
           '^c,#0f0,goto [room?]:; goto the given room. if no room provided, it brings you to main',
+          '^c,#0f0,his:; tells you your command history',
         ].concat(tag > 1 ? [
           '^c,#0f0,stats [user]:; gives you statistics about the given user',
           '^c,#0f0,ban [user]:; will flip the ban state of a user, banned -> unban, unbanned -> ban',
@@ -293,6 +294,14 @@ function handleCmd(cmd, args) {
       case 'runjs':
         ws.send(JSON.stringify({ runjs: args.join(' ') }));
         res('running code');
+        break;
+      case 'his':
+        if (args[0] == 'clear') {
+          cmdhistory = [];
+          res('command history cleared');
+        } else {
+          res('command history :' + cmdhistory.map(x => '\n^c,green,>; ' + x).join(''));
+        }
         break;
       default:
         rej(`command not found "${cmd}".\n^c,yellow,TIP:; use /help or /? for help`)
