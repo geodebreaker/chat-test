@@ -627,7 +627,8 @@ wss.on('connection', async (ws, req) => {
       dontcon[ws.un] = Date.now();
       setTimeout((un, tag, room) => {
         if (!clients[un]) emit('disconnect', [un, tag], room);
-      }, 10e3, ws.un, ws.tag, ws.room)
+      }, 10e3, ws.un, ws.tag, ws.room);
+      setUserData(ws.uid, 'laston', Date.now());
     }
     delete clients[ws.un];
   });
