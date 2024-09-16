@@ -101,7 +101,6 @@ function login() {
         break;
       case 'popup':
         $('#alertcon').style.display = 'block';
-        hammers = JSON.stringify(x);
         $('#alert').innerHTML = styleMsg(x);
         break;
       case 'stats':
