@@ -42,6 +42,7 @@ conn.connect((err) => {
         ban: x.ban,
         timeout: x.timeout,
         notif: x.notif,
+        laston: x.laston,
         time: Date.now()
       })
     });
@@ -129,6 +130,7 @@ function fromUserCache(type, value, newType) {
             ban: res.ban,
             timeout: res.timeout,
             notif: res.notif,
+            laston: res.laston,
             time: Date.now()
           });
           // console.log(`UCache miss: ${type} ${value} ${newType} -> ${res[newType]}`);
@@ -229,6 +231,7 @@ async function getUserStats(id) {
     tag: await getUserData(id, 'perm'),
     banned: !!(await getUserData(id, 'ban')),
     timeout: fmtTime(await getUserData(id, 'timeout'), true),
+    laston: fmtTime(Date.now() - await getUserData(id, 'laston')),
     online: !!cli.li,
     room: cli.room,
   };
