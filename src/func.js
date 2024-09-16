@@ -302,7 +302,7 @@ function handleCmd(cmd, args) {
 }
 
 function styleEmote(x) {
-  const emo = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll" ];
+  const emo = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh" ];
 
   return x.replace(/(\\?)(:(.{4,8}?):)/g, (_match, bs, og, name) =>
     bs ? og : emo.includes(name) ? '^p,' + `https://evrtdg.com/emoji/${name}.jpg` + ',emote;' : og);
