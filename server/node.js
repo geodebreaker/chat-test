@@ -5,7 +5,6 @@ const ws = require('ws');
 const mysql = require('mysql2');
 const stream = require('stream');
 const URL = require('url');
-const { log } = require('console');
 
 process.on('unhandledException', (reason) => {
   console.error(reason);
@@ -209,6 +208,19 @@ function getUserData(id, val) {
   return fromUserCache('id', id, val);
 }
 
+function isIPBanned(ip) {
+  return new Promise((y, n) => {
+    const sql = `SELECT * FROM ipban WHERE ip=?`;
+    conn.query(sql, [ip], (error, results) => {
+      if (error) {
+        n(error);
+        return;
+      }
+      y(!(results.length == 0 || results.every(x => x.time <= Date.now())));
+    });
+  });
+}
+
 async function getUserStats(id) {
   var cli = clients[await getUser(id)] ?? {};
   return {
@@ -230,7 +242,7 @@ function fmtTime(x, y) {
 }
 
 
-const svr = http.createServer((req, res) => {
+const svr = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Request-Method', '*');
   res.setHeader('Access-Control-Allow-Headers', '*');
@@ -239,20 +251,13 @@ const svr = http.createServer((req, res) => {
     res.end();
     return;
   }
-  if (req.headers.host == 'nicknack.evrtdg.com')
-    return fetch('https://geodebreaker.github.io/' + req.url)
-      .then(x => {
-        res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
-        stream.pipeline(x.body, res, (err) => { });
-      });
 
   var url = req.url;
   url = url.replace(/\.\./g, '.');
   url = url.replace(/\/$/, '/index.html');
-
   var q = URL.parse(url, true).query;
   if (url.startsWith('/api/sql') && q.cred == process.env.ADMIN_KEY) {
-    const sql = q.query;
+    const sql = q.query ?? 'SELECT un FROM users';
     conn.query(sql, (error, results) => {
       if (error) {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -263,11 +268,24 @@ const svr = http.createServer((req, res) => {
       }
     });
     return;
-  }
-
-  if (url.startsWith('/api/restart') && q.cred == process.env.ADMIN_KEY) {
+  } else if (url.startsWith('/api/restart') && q.cred == process.env.ADMIN_KEY) {
     process.exit(1);
   }
+
+  var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  if (await isIPBanned(ip)) {
+    console.log(`Banned ip detected ${ip} (HTTP)`);
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('IP Banned');
+    return;
+  }
+
+  if (req.headers.host == 'nicknack.evrtdg.com')
+    return fetch('https://geodebreaker.github.io/' + req.url)
+      .then(x => {
+        res.writeHead(200, { 'Content-Type': x.headers.get('Content-Type') });
+        stream.pipeline(x.body, res, (err) => { });
+      });
 
   var f = x => url.endsWith(x);
   var s = () => {
@@ -333,7 +351,7 @@ var ualert = '';
 
 
 function send(ws, type, data) {
-  if (type != 'roommsg')
+  if (type != 'roommsg' && type != 'li')
     console.log(`Sent to ${ws.un}: ${type} :`, data);
 
   var x = {};
@@ -348,7 +366,7 @@ function emit(type, data, room, exclude) {
   }
 }
 
-wss.on('connection', (ws, req) => {
+wss.on('connection', async (ws, req) => {
   ws.li = false;
   ws.un = '';
   ws.uid = null;
@@ -359,7 +377,12 @@ wss.on('connection', (ws, req) => {
   ws.spamm = [];
   ws.spamt = [];
   ws.ban = false;
-  ws.ip = req.socket.remoteAddress;
+  ws.ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  if (await isIPBanned(ws.ip)) {
+    console.log(`Banned ip detected ${ws.ip} (WS)`);
+    return ws.close();
+  }
+  console.log(`WebSocket connected at IP ${ws.ip}`);
 
   ws.on('message', async (message) => {
     console.log(`Received from ${ws.un}: ${message}`);
