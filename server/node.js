@@ -231,7 +231,7 @@ async function getUserStats(id) {
     tag: await getUserData(id, 'perm'),
     banned: !!(await getUserData(id, 'ban')),
     timeout: fmtTime(await getUserData(id, 'timeout'), true),
-    laston: fmtTime(Date.now() - await getUserData(id, 'laston')),
+    "last online": fmtTime(Date.now() - await getUserData(id, 'laston')),
     online: !!cli.li,
     room: cli.room,
   };
