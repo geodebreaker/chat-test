@@ -170,7 +170,7 @@ function updateMenu() {
 function updateTitle() {
   $('title').innerText =
     (notif > 0 ? '(' + notif + ') ' : '') +
-    'gooberchat' +
+    (notproxy ? 'gooberchat' : 'New Tab') +
     (loggedin ? ' - ' + room : '');
 }
 
