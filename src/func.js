@@ -302,16 +302,10 @@ function handleCmd(cmd, args) {
 }
 
 function styleEmote(x) {
-  const emo = {
-    mood: 'http://raw.githubusercontent.com/geodebreaker/mystuff/main/mood.jpg',
-    goober: 'http://evrtdg.com/goober.jpg',
-    horror: 'http://raw.githubusercontent.com/mhgits/mystuff/main/horror.jpg',
-    nohorror: 'http://raw.githubusercontent.com/mhgits/mystuff/main/nohorror.jpg',
-    clueless: 'http://raw.githubusercontent.com/mhgits/mystuff/main/clueless.jpg'
-  };
+  const emo = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll" ];
 
   return x.replace(/(\\?)(:(.{4,8}?):)/g, (_match, bs, og, name) =>
-    bs ? og : emo[name] ? '^p,' + emo[name] + ',emote;' : og);
+    bs ? og : emo[name] ? '^p,' + `https://evrtdg.com/emoji/${name}.jpg` + ',emote;' : og);
 }
 
 var statsret = null;
