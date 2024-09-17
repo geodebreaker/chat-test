@@ -189,7 +189,7 @@ async function loadmoremsg() {
   var a = 100;
 
   var x = loadmsg.splice(loadmsg.length - a, a).reverse();
-  x.map(y => new Promise((x) => x(mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, false, true))));
+  x.map(y => new Promise((x) => x(mkmsg(y.user, y.text, y.id, y.date, y.ban ? -1 : y.tag, true, true))));
   if (loadmsg.length == 0) {
     if (!loadmsgdone)
       ws.send(JSON.stringify({ getpage: loadmsgpage }));
