@@ -311,7 +311,7 @@ function handleCmd(cmd, args) {
 }
 
 function styleEmote(x) {
-  const emojpg = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer" ];
+  const emojpg = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer", "panic" ];
   const emopng = [ "chair" ];
   return x.replace(/(\\?)(:(.{2,14}?):)/g, (_match, bs, og, name) =>
     bs ? og : emojpg.concat(emopng).includes(name) ? '^p,' + 
