@@ -312,9 +312,9 @@ function handleCmd(cmd, args) {
 
 function styleEmote(x) {
   const emo = {
-    jpg: [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer", "panic" ],
+    jpg: [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer", "panic", "ralsei" ],
     png: [ "chair" ],
-    gif: [ "huh", "bigshot", "sad", "alarm", "ralsei" ],
+    gif: [ "huh", "bigshot", "sad", "alarm" ],
   };
   return x.replace(/(\\?)(:(.{2,14}?):)/g, (_match, bs, og, name) => {
     var type = (Object.entries(emo).find(x => x[1].includes(name)))[0]
