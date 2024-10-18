@@ -311,11 +311,17 @@ function handleCmd(cmd, args) {
 }
 
 function styleEmote(x) {
-  const emojpg = [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer", "panic" ];
-  const emopng = [ "chair" ];
-  return x.replace(/(\\?)(:(.{2,14}?):)/g, (_match, bs, og, name) =>
-    bs ? og : emojpg.concat(emopng).includes(name) ? '^p,' + 
-    `https://evrtdg.com/emoji/${name}.${emojpg.includes(name) ? 'jpg' : 'png'}` + ',emote;' : og);
+  const emo = {
+    jpg: [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer", "panic" ],
+    png: [ "chair" ],
+    gif: [ "huh", "bigshot", "sad", "alarm" ],
+  };
+  return x.replace(/(\\?)(:(.{2,14}?):)/g, (_match, bs, og, name) => {
+    var type = (Object.entries(emo).find(x => x.value.includes(name))).key
+    if(bs || !type)
+      return og;
+    return `^p,https://evrtdg.com/emoji/${name}.${type},emote;`;
+  });
 }
 
 var statsret = null;
