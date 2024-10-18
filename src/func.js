@@ -314,10 +314,10 @@ function styleEmote(x) {
   const emo = {
     jpg: [ "mood", "goober", "horror", "nohorror", "clueless", "silly", "roll", "mh", "moodenheimer", "panic" ],
     png: [ "chair" ],
-    gif: [ "huh", "bigshot", "sad", "alarm" ],
+    gif: [ "huh", "bigshot", "sad", "alarm", "ralsei" ],
   };
   return x.replace(/(\\?)(:(.{2,14}?):)/g, (_match, bs, og, name) => {
-    var type = (Object.entries(emo).find(x => x.value.includes(name))).key
+    var type = (Object.entries(emo).find(x => x[1].includes(name)))[0]
     if(bs || !type)
       return og;
     return `^p,https://evrtdg.com/emoji/${name}.${type},emote;`;
